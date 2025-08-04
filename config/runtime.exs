@@ -1,7 +1,8 @@
 import Config
 
 config :elixir_no_deps,
-  ssh_key: """-----BEGIN OPENSSH PRIVATE KEY-----
+  ssh_key: """
+-----BEGIN OPENSSH PRIVATE KEY-----
 KEYKEYKEYKEYKEYKEY
 KEYKEYKEYKEYKEYKEY
 KEYKEYKEYKEYKEYKEY

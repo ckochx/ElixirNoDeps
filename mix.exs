@@ -14,19 +14,10 @@ defmodule ElixirNoDeps.MixProject do
     ]
   end
 
-
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :ssh],
-      mod: []
-    ]
-  end
-
-  # Run "mix help compile.app" to learn about applications.
-  def application do
-    [
-      extra_applications: [:logger, :ssh],
+      extra_applications: [:logger, :ssh, :inets, :ssl],
       mod: {ElixirNoDeps.Application, []}
     ]
   end

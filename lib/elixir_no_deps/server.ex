@@ -24,7 +24,7 @@ defmodule ElixirNoDeps.Server do
     {_count, new_state} = state
     |> Map.put(:current_time, System.system_time())
     |> Map.get_and_updte(:counter, fn count -> 
-    	{count, {counter: count + 1}}
+    	{count, %{counter: count + 1}}
     end)
 
     {:noreply, new_state}
@@ -36,7 +36,7 @@ defmodule ElixirNoDeps.Server do
     {count, new_state} = state
     |> Map.put(:current_time, System.system_time())
     |> Map.get_and_updte(:counter, fn count -> 
-    	{count, {counter: count + 1}}
+    	{count, %{counter: count + 1}}
     end)
 
     {:reply, count, new_state}
