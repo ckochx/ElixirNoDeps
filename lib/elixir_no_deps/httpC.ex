@@ -15,8 +15,8 @@ defmodule ElixirNoDeps.HttpC do
       {:error, :nxdomain}
   """
   def get(url) when is_binary(url) do
-    :inets.start()
-    :ssl.start()
+    # :inets.start()
+    # :ssl.start()
     
     http_options = build_http_options(url)
     
@@ -41,8 +41,8 @@ defmodule ElixirNoDeps.HttpC do
       {:ok, %{status: 200, headers: [...], body: "..."}}
   """
   def post(url, data, headers \\ []) when is_binary(url) and is_binary(data) do
-    :inets.start()
-    :ssl.start()
+    # :inets.start()
+    # :ssl.start()
     
     content_type = get_content_type(headers)
     request_headers = normalize_request_headers(headers)
@@ -64,8 +64,8 @@ defmodule ElixirNoDeps.HttpC do
   Make an HTTP PUT request to the given URL with data.
   """
   def put(url, data, headers \\ []) when is_binary(url) and is_binary(data) do
-    :inets.start()
-    :ssl.start()
+    # :inets.start()
+    # :ssl.start()
     
     content_type = get_content_type(headers)
     request_headers = normalize_request_headers(headers)
@@ -87,8 +87,8 @@ defmodule ElixirNoDeps.HttpC do
   Make an HTTP DELETE request to the given URL.
   """
   def delete(url, headers \\ []) when is_binary(url) do
-    :inets.start()
-    :ssl.start()
+    # :inets.start()
+    # :ssl.start()
     
     request_headers = normalize_request_headers(headers)
     http_options = build_http_options(url)
