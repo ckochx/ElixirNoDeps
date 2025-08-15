@@ -8,6 +8,10 @@ defmodule ElixirNoDeps.SSH.Tunnel do
 
   @behaviour :ssh_client_key_api
 
+  defmodule ConnectionError do
+    defexception [:message]
+  end
+
   require Logger
 
   def connect do
@@ -18,8 +22,8 @@ defmodule ElixirNoDeps.SSH.Tunnel do
   end
 
   def start(user) do
-    remote_host = hostname(user)
-    ssh_key = config(:ssh_key)
+    remote_host = config(:hostname)
+    ssh_key = config(:ssh_key) || File.read!(Path.join([System.user_home(), ".ssh", "id_ed25519"]))
 
     case :ssh.connect(String.to_charlist(remote_host), 22,
            auth_methods: ~c"publickey",
@@ -108,10 +112,5 @@ defmodule ElixirNoDeps.SSH.Tunnel do
 
   defp config(key) do
     Application.get_env(:elixir_no_deps, key)
-  end
-
-  defp hostname(username \\ "ssh") do
-    host_part = "remote.hostname.to_connect.com"
-    "#{username}.#{host_part}"
   end
 end
