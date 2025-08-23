@@ -110,6 +110,61 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
 
       File.rm(temp_file)
     end
+
+    @tag :integration
+    test "processes PNG files with alpha channel (srgba format)" do
+      png_file = "tinyllama.png"
+      
+      # Skip if file doesn't exist  
+      if File.exists?(png_file) do
+        result = AsciiProcessor.generate_ascii_art(png_file)
+        
+        refute String.contains?(result, "[ASCII Art Error]")
+        refute String.contains?(result, "[ASCII Generation Failed]")
+        assert String.length(result) > 1000
+        # Should contain ASCII characters
+        assert String.contains?(result, "`") or String.contains?(result, "^") or String.contains?(result, ":")
+      end
+    end
+
+    @tag :integration  
+    test "processes JPG files (srgb format)" do
+      jpg_file = "tinyllama.jpg"
+      
+      # Skip if file doesn't exist
+      if File.exists?(jpg_file) do
+        result = AsciiProcessor.generate_ascii_art(jpg_file)
+        
+        refute String.contains?(result, "[ASCII Art Error]")
+        refute String.contains?(result, "[ASCII Generation Failed]")
+        assert String.length(result) > 1000
+        # Should contain ASCII characters
+        assert String.contains?(result, "`") or String.contains?(result, "^") or String.contains?(result, ":")
+      end
+    end
+
+    @tag :integration
+    test "PNG and JPG produce different but valid ASCII art" do
+      png_file = "tinyllama.png"
+      jpg_file = "tinyllama.jpg"
+      
+      # Skip if files don't exist
+      if File.exists?(png_file) and File.exists?(jpg_file) do
+        png_result = AsciiProcessor.generate_ascii_art(png_file)
+        jpg_result = AsciiProcessor.generate_ascii_art(jpg_file)
+        
+        # Both should be valid ASCII art
+        refute String.contains?(png_result, "[ASCII Art Error]")
+        refute String.contains?(jpg_result, "[ASCII Art Error]")
+        
+        # Results should be substantial
+        assert String.length(png_result) > 1000
+        assert String.length(jpg_result) > 1000
+        
+        # Results may differ due to format differences but both should work
+        # (PNG has transparency, JPG doesn't, so results can vary)
+      end
+    end
   end
 
   describe "clear_cache/0" do

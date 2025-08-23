@@ -8,7 +8,7 @@ theme: "default"
 
 This presentation demonstrates how to include ASCII art generated from images.
 
-The system supports the `![ascii](image_path)` syntax.
+The system supports the `!\[ascii\](image_path)` syntax.
 
 ---
 
@@ -41,7 +41,7 @@ Pretty cool, right? The ASCII art is generated automatically from the image file
 
 The ASCII processor:
 
-1. **Finds** `![ascii](path)` references in markdown
+1. **Finds** `!\[ascii\](path)` references in markdown content
 2. **Converts** images using ImageMagick 
 3. **Caches** results for performance
 4. **Replaces** markdown with ASCII art text
@@ -58,6 +58,6 @@ result = AsciiProcessor.process_ascii_art(content)
 
 ASCII art makes presentations more **visual** and **engaging**.
 
-Try it in your own presentations with the `![ascii](path)` syntax.
+Try it in your own presentations with the `!\[ascii\](path)` syntax format.
 
 Questions?
