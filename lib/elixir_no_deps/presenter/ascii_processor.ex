@@ -90,23 +90,12 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
 
   @doc """
   Clears the ASCII art cache.
+  Note: Current ETS implementation doesn't support bulk operations.
   """
   @spec clear_cache() :: :ok
   def clear_cache do
-    # Clear all entries starting with "ascii_art:"
-    try do
-      case ETSCache.keys() do
-        {:ok, keys} ->
-          ascii_keys = Enum.filter(keys, &String.starts_with?(&1, "ascii_art:"))
-          Enum.each(ascii_keys, &ETSCache.delete/1)
-
-        :error ->
-          :ok
-      end
-    rescue
-      _ -> :ok
-    end
-
+    # TODO: ETSCache doesn't currently support keys() or delete() operations
+    # For now, we'll let entries expire naturally via TTL
     :ok
   end
 
@@ -115,8 +104,8 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   defp get_cached_ascii(cache_key) do
     try do
       case ETSCache.get(cache_key) do
-        {:ok, value} -> {:ok, value}
-        :error -> :error
+        nil -> :error
+        value -> {:ok, value}
       end
     rescue
       _ -> :error
@@ -236,11 +225,40 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   end
 
   defp pixel_rgb_value(pixel) do
-    pixel
-    |> Enum.at(-1)
-    |> String.slice(5..-2//1)
-    |> String.split(",")
-    |> Enum.map(&parse_percentage_to_rgb/1)
+    color_string = pixel |> Enum.at(-1)
+    
+    # Handle both srgb(...) and srgba(...) formats
+    rgb_values = cond do
+      String.starts_with?(color_string, "srgba(") ->
+        # Extract RGB values from srgba(r,g,b,a) - ignore alpha channel
+        color_string
+        |> String.slice(6..-2//1)
+        |> String.split(",")
+        |> Enum.take(3)  # Only take first 3 values (RGB), ignore alpha
+        |> Enum.map(&parse_percentage_to_rgb/1)
+        
+      String.starts_with?(color_string, "srgb(") ->
+        # Extract RGB values from srgb(r,g,b)
+        color_string
+        |> String.slice(5..-2//1)
+        |> String.split(",")
+        |> Enum.map(&parse_percentage_to_rgb/1)
+        
+      true ->
+        # Fallback - assume old format
+        color_string
+        |> String.slice(5..-2//1)
+        |> String.split(",")
+        |> Enum.take(3)
+        |> Enum.map(&parse_percentage_to_rgb/1)
+    end
+    
+    # Ensure we always have 3 RGB values
+    case length(rgb_values) do
+      3 -> rgb_values
+      n when n > 3 -> Enum.take(rgb_values, 3)
+      n when n < 3 -> rgb_values ++ List.duplicate(0, 3 - n)
+    end
   end
 
   defp parse_percentage_to_rgb(percentage_str) do
