@@ -5,7 +5,10 @@ defmodule ElixirNoDeps.Presenter do
   Provides a simple API to run presentations from markdown files.
   """
 
-  alias ElixirNoDeps.Presenter.{Parser, Navigator, Terminal, RawInput}
+  alias ElixirNoDeps.Presenter.Navigator
+  alias ElixirNoDeps.Presenter.Parser
+  alias ElixirNoDeps.Presenter.RawInput
+  alias ElixirNoDeps.Presenter.Terminal
 
   @doc """
   Runs a presentation from a markdown file.
