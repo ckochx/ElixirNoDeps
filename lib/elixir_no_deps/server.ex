@@ -23,7 +23,7 @@ defmodule ElixirNoDeps.Server do
     # maybe update the state? 
     {_count, new_state} = state
     |> Map.put(:current_time, System.system_time())
-    |> Map.get_and_updte(:counter, fn count -> 
+    |> Map.get_and_update(:counter, fn count ->
     	{count, %{counter: count + 1}}
     end)
 
@@ -31,11 +31,11 @@ defmodule ElixirNoDeps.Server do
   end
 
   @impl true
-  def handle_call({:put, {_key, _element, _opts}}, state) do
+  def handle_call({:put, {_key, _element, _opts}}, _from, state) do
     # do something sync
     {count, new_state} = state
     |> Map.put(:current_time, System.system_time())
-    |> Map.get_and_updte(:counter, fn count -> 
+    |> Map.get_and_update(:counter, fn count ->
     	{count, %{counter: count + 1}}
     end)
 
