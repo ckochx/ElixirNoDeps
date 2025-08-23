@@ -48,8 +48,8 @@ defmodule ElixirNoDeps.Presenter do
     # Setup cleanup handler
     setup_cleanup_handler()
     
-    IO.puts("Starting presentation...")
-    IO.puts("Press '?' for help or 'q' to quit\n")
+    IO.puts("Starting presentation with raw keyboard input...")
+    IO.puts("Press Space to advance, '?' for help, or 'q' to quit\n")
     
     # Small delay to let user see the message
     Process.sleep(1000)

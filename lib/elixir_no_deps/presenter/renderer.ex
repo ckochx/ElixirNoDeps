@@ -123,7 +123,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   end
 
   defp navigation_help do
-    "Space/→: Next | ←: Prev | q: Quit"
+    "Space/→: Next | ←: Prev | ?: Help | q: Quit"
   end
 
   defp process_headers(content) do
