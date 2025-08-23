@@ -125,7 +125,10 @@ defmodule ElixirNoDeps.HTTP.Renderer do
   Extracts meta description from an HTML document.
   """
   def extract_description(html) do
-    case Regex.run(~r/<meta[^>]*name\s*=\s*['"]description['"][^>]*content\s*=\s*['"]([^'"]*)['"]/i, html) do
+    case Regex.run(
+           ~r/<meta[^>]*name\s*=\s*['"]description['"][^>]*content\s*=\s*['"]([^'"]*)['"]/i,
+           html
+         ) do
       [_full, description] -> description
       nil -> nil
     end
@@ -152,9 +155,14 @@ defmodule ElixirNoDeps.HTTP.Renderer do
       level_num = String.to_integer(level)
 
       case level_num do
-        1 -> "#{String.duplicate("=", String.length(text))}\n#{text}\n#{String.duplicate("=", String.length(text))}\n"
-        2 -> "#{text}\n#{String.duplicate("-", String.length(text))}\n"
-        _ -> "#{String.duplicate("#", level_num)} #{text}\n"
+        1 ->
+          "#{String.duplicate("=", String.length(text))}\n#{text}\n#{String.duplicate("=", String.length(text))}\n"
+
+        2 ->
+          "#{text}\n#{String.duplicate("-", String.length(text))}\n"
+
+        _ ->
+          "#{String.duplicate("#", level_num)} #{text}\n"
       end
     end)
   end

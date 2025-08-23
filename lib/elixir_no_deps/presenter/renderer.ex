@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Renderer do
   @moduledoc """
   Renders presentation slides to the terminal.
-  
+
   Handles:
   - Slide content rendering with markdown-like formatting
   - Status bar with navigation info
@@ -21,17 +21,18 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   def render_slide(%Presentation{} = presentation) do
     Terminal.clear_screen()
     Terminal.hide_cursor()
-    
+
     {width, height} = Terminal.get_dimensions()
     current_slide = Presentation.current_slide(presentation)
-    
+
     case current_slide do
       nil ->
         render_empty_presentation(width, height)
+
       slide ->
         render_slide_content(slide, presentation, width, height)
     end
-    
+
     :ok
   end
 
@@ -42,17 +43,17 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   def render_status_bar(%Presentation{} = presentation, width, height) do
     current_num = Presentation.current_slide_number(presentation)
     total = Presentation.slide_count(presentation)
-    
+
     # Status line content
     left_status = "#{current_num}/#{total}"
     right_status = navigation_help()
-    
+
     # Calculate positioning
     status_line = format_status_line(left_status, right_status, width)
-    
+
     # Render at bottom of screen
     Terminal.print_at(height, 1, Terminal.style_text(status_line, :bright_black, nil))
-    
+
     :ok
   end
 
@@ -63,8 +64,10 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   def render_content(content, width, available_height) do
     content
     |> process_markdown_formatting()
-    |> Terminal.wrap_text(width - 4) # Leave padding on sides
-    |> Enum.take(available_height - 3) # Leave space for status bar and padding
+    # Leave padding on sides
+    |> Terminal.wrap_text(width - 4)
+    # Leave space for status bar and padding
+    |> Enum.take(available_height - 3)
   end
 
   @doc """
@@ -86,27 +89,28 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     message = "No slides to display"
     centered = Terminal.center_text(message, width)
     middle_row = div(height, 2)
-    
+
     Terminal.print_at(middle_row, 1, Terminal.style_text(centered, :bright_red, :bold))
   end
 
   defp render_slide_content(%Slide{} = slide, presentation, width, height) do
-    available_height = height - 2 # Reserve space for status bar
-    
+    # Reserve space for status bar
+    available_height = height - 2
+
     # Process and render slide content
     content_lines = render_content(slide.content, width, available_height)
-    
+
     # Calculate vertical centering
     content_height = length(content_lines)
     vertical_padding = max(0, div(available_height - content_height, 2))
-    
+
     # Render content lines
     Enum.with_index(content_lines, vertical_padding + 1)
     |> Enum.each(fn {line, row} ->
       centered_line = Terminal.center_text(line, width)
       Terminal.print_at(row, 1, centered_line)
     end)
-    
+
     # Render status bar
     render_status_bar(presentation, width, height)
   end
@@ -114,7 +118,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   defp format_status_line(left, right, width) do
     right_length = Terminal.visible_length(right)
     left_length = Terminal.visible_length(left)
-    
+
     if left_length + right_length + 2 >= width do
       # Not enough space, just show left status
       String.pad_trailing(left, width)
@@ -178,9 +182,12 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     |> String.replace(~r/```([^`]+)```/s, fn match ->
       code = String.replace(match, ~r/^```|```$/, "")
       code_lines = String.split(code, "\n")
-      formatted_lines = Enum.map(code_lines, fn line ->
-        Terminal.style_text("  " <> line, :green, nil)
-      end)
+
+      formatted_lines =
+        Enum.map(code_lines, fn line ->
+          Terminal.style_text("  " <> line, :green, nil)
+        end)
+
       Enum.join(formatted_lines, "\n")
     end)
   end

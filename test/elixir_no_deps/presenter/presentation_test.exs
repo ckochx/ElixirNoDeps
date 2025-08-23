@@ -19,6 +19,7 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
         Slide.new("# Slide 1"),
         Slide.new("# Slide 2")
       ]
+
       opts = [
         title: "My Presentation",
         author: "Test Author",
@@ -41,6 +42,7 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
         Slide.new("# Slide 2"),
         Slide.new("# Slide 3")
       ]
+
       presentation = Presentation.new(slides)
       {:ok, presentation: presentation}
     end
@@ -53,16 +55,17 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
     test "next_slide/1 advances to next slide", %{presentation: presentation} do
       updated = Presentation.next_slide(presentation)
       slide = Presentation.current_slide(updated)
-      
+
       assert slide.title == "Slide 2"
       assert updated.current_slide == 1
     end
 
     test "next_slide/1 stops at last slide", %{presentation: presentation} do
       # Go to last slide
-      updated = presentation 
-                 |> Presentation.goto_slide(2)
-                 |> Presentation.next_slide()
+      updated =
+        presentation
+        |> Presentation.goto_slide(2)
+        |> Presentation.next_slide()
 
       assert updated.current_slide == 2
       slide = Presentation.current_slide(updated)
@@ -70,9 +73,10 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
     end
 
     test "prev_slide/1 goes to previous slide", %{presentation: presentation} do
-      updated = presentation
-                |> Presentation.next_slide()
-                |> Presentation.prev_slide()
+      updated =
+        presentation
+        |> Presentation.next_slide()
+        |> Presentation.prev_slide()
 
       assert updated.current_slide == 0
       slide = Presentation.current_slide(updated)
@@ -81,7 +85,7 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
 
     test "prev_slide/1 stops at first slide", %{presentation: presentation} do
       updated = Presentation.prev_slide(presentation)
-      
+
       assert updated.current_slide == 0
       slide = Presentation.current_slide(updated)
       assert slide.title == "Slide 1"
@@ -90,7 +94,7 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
     test "goto_slide/2 jumps to specific slide", %{presentation: presentation} do
       updated = Presentation.goto_slide(presentation, 2)
       slide = Presentation.current_slide(updated)
-      
+
       assert slide.title == "Slide 3"
       assert updated.current_slide == 2
     end
@@ -119,7 +123,7 @@ defmodule ElixirNoDeps.Presenter.PresentationTest do
 
     test "current_slide_number/1 returns 1-based index", %{presentation: presentation} do
       assert Presentation.current_slide_number(presentation) == 1
-      
+
       updated = Presentation.next_slide(presentation)
       assert Presentation.current_slide_number(updated) == 2
     end

@@ -33,21 +33,22 @@ defmodule Mix.Tasks.Present do
 
   @impl Mix.Task
   def run(args) do
-    {opts, files, _invalid} = OptionParser.parse(args,
-      switches: [
-        demo: :boolean,
-        theme: :string,
-        author: :string,
-        title: :string,
-        help: :boolean
-      ],
-      aliases: [
-        d: :demo,
-        t: :theme,
-        a: :author,
-        h: :help
-      ]
-    )
+    {opts, files, _invalid} =
+      OptionParser.parse(args,
+        switches: [
+          demo: :boolean,
+          theme: :string,
+          author: :string,
+          title: :string,
+          help: :boolean
+        ],
+        aliases: [
+          d: :demo,
+          t: :theme,
+          a: :author,
+          h: :help
+        ]
+      )
 
     cond do
       opts[:help] ->
@@ -60,7 +61,10 @@ defmodule Mix.Tasks.Present do
         run_presentation(List.first(files), opts)
 
       length(files) == 0 ->
-        Mix.shell().error("No presentation file specified. Use --demo for a demo or specify a markdown file.")
+        Mix.shell().error(
+          "No presentation file specified. Use --demo for a demo or specify a markdown file."
+        )
+
         show_usage()
 
       true ->
@@ -71,13 +75,14 @@ defmodule Mix.Tasks.Present do
 
   defp run_demo do
     Mix.shell().info("Starting demo presentation...")
-    
+
     # Ensure the application is started
     Application.ensure_all_started(:elixir_no_deps)
-    
+
     case ElixirNoDeps.Presenter.demo() do
       :ok ->
         Mix.shell().info("Demo completed successfully!")
+
       {:error, reason} ->
         Mix.shell().error("Demo failed: #{reason}")
         System.halt(1)
@@ -91,18 +96,20 @@ defmodule Mix.Tasks.Present do
     end
 
     Mix.shell().info("Loading presentation: #{file_path}")
-    
+
     # Ensure the application is started
     Application.ensure_all_started(:elixir_no_deps)
-    
+
     # Filter and prepare options
-    presenter_opts = opts
-                     |> Enum.filter(fn {key, _} -> key in [:theme, :author, :title] end)
-                     |> Enum.reject(fn {_, value} -> is_nil(value) end)
+    presenter_opts =
+      opts
+      |> Enum.filter(fn {key, _} -> key in [:theme, :author, :title] end)
+      |> Enum.reject(fn {_, value} -> is_nil(value) end)
 
     case ElixirNoDeps.Presenter.run(file_path, presenter_opts) do
       :ok ->
         Mix.shell().info("Presentation completed successfully!")
+
       {:error, reason} ->
         Mix.shell().error("Presentation failed: #{reason}")
         System.halt(1)

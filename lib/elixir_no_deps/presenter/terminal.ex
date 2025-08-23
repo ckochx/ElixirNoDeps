@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Terminal do
   @moduledoc """
   Terminal rendering utilities for presentations.
-  
+
   Handles:
   - Screen clearing and positioning
   - ANSI color and formatting codes
@@ -84,11 +84,14 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   def get_dimensions do
     case :io.columns() do
       {:ok, cols} ->
-        rows = case :io.rows() do
-          {:ok, r} -> r
-          _ -> 24
-        end
+        rows =
+          case :io.rows() do
+            {:ok, r} -> r
+            _ -> 24
+          end
+
         {cols, rows}
+
       _ ->
         {80, 24}
     end
@@ -132,7 +135,7 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   @spec center_text(String.t(), pos_integer()) :: String.t()
   def center_text(text, width) do
     text_width = visible_length(text)
-    
+
     if text_width >= width do
       text
     else
@@ -195,15 +198,16 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   def create_box(content, border_char \\ "─") do
     lines = String.split(content, "\n")
     max_width = lines |> Enum.map(&visible_length/1) |> Enum.max()
-    
+
     top_line = "┌" <> String.duplicate(border_char, max_width + 2) <> "┐"
     bottom_line = "└" <> String.duplicate(border_char, max_width + 2) <> "┘"
-    
-    content_lines = Enum.map(lines, fn line ->
-      padding = max_width - visible_length(line)
-      "│ " <> line <> String.duplicate(" ", padding) <> " │"
-    end)
-    
+
+    content_lines =
+      Enum.map(lines, fn line ->
+        padding = max_width - visible_length(line)
+        "│ " <> line <> String.duplicate(" ", padding) <> " │"
+      end)
+
     [top_line] ++ content_lines ++ [bottom_line]
   end
 
@@ -216,6 +220,7 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   defp apply_format(text, format), do: format_text(text, format)
 
   defp wrap_line("", _width), do: [""]
+
   defp wrap_line(line, width) do
     if visible_length(line) <= width do
       [line]
@@ -227,13 +232,14 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   end
 
   defp wrap_words([], _width, "", acc), do: Enum.reverse(acc)
+
   defp wrap_words([], _width, current_line, acc) do
     Enum.reverse([String.trim(current_line) | acc])
   end
-  
+
   defp wrap_words([word | rest], width, current_line, acc) do
     test_line = if current_line == "", do: word, else: current_line <> " " <> word
-    
+
     if visible_length(test_line) <= width do
       wrap_words(rest, width, test_line, acc)
     else

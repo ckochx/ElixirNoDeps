@@ -7,13 +7,13 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "parses simple markdown without frontmatter" do
       content = """
       # First Slide
-      
+
       This is the first slide
-      
+
       ---
-      
+
       # Second Slide
-      
+
       This is the second slide
       """
 
@@ -38,15 +38,15 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
       author: "John Doe"
       theme: "dark"
       ---
-      
+
       # Welcome
-      
+
       Welcome to my presentation!
-      
+
       ---
-      
+
       # Thank You
-      
+
       Questions?
       """
 
@@ -61,15 +61,15 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "parses markdown with speaker notes" do
       content = """
       # First Slide
-      
+
       Public content
-      
+
       <!-- Speaker notes: Remember to speak slowly -->
-      
+
       ---
-      
+
       # Second Slide
-      
+
       More content
       <!-- Speaker Notes: This is important -->
       """
@@ -79,7 +79,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
 
       assert slide1.speaker_notes == "Remember to speak slowly"
       assert slide2.speaker_notes == "This is important"
-      
+
       # Ensure speaker notes are removed from content
       refute String.contains?(slide1.content, "Speaker notes")
       refute String.contains?(slide2.content, "Speaker Notes")
@@ -93,7 +93,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
       title: "Test Title"
       author: "Test Author"
       ---
-      
+
       # Content here
       """
 
@@ -108,7 +108,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "returns empty metadata when no frontmatter" do
       content = """
       # Just content
-      
+
       No frontmatter here
       """
 
@@ -125,7 +125,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
       author: 'Single Quoted'
       theme: unquoted
       ---
-      
+
       Content
       """
 
@@ -142,14 +142,14 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
       content = """
       # Slide One
       Content 1
-      
+
       ---
-      
+
       # Slide Two
       Content 2
-      
+
       ---
-      
+
       # Slide Three
       Content 3
       """
@@ -160,7 +160,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
       assert Enum.at(slides, 0).title == "Slide One"
       assert Enum.at(slides, 1).title == "Slide Two"
       assert Enum.at(slides, 2).title == "Slide Three"
-      
+
       # Check slide numbers
       assert Enum.at(slides, 0).slide_number == 1
       assert Enum.at(slides, 1).slide_number == 2
@@ -170,13 +170,13 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "handles slides with whitespace around separators" do
       content = """
       # First Slide
-      
+
       ---
-      
+
       # Second Slide
-      
+
         ---   
-      
+
       # Third Slide
       """
 
@@ -189,11 +189,11 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "ignores empty slides" do
       content = """
       # Real Slide
-      
+
       ---
-      
+
       ---
-      
+
       # Another Real Slide
       """
 
@@ -209,9 +209,9 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "extracts speaker notes from HTML comments" do
       content = """
       # Slide Title
-      
+
       Main content here
-      
+
       <!-- Speaker notes: Don't forget the demo -->
       """
 
@@ -224,16 +224,16 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
 
     test "handles different capitalization" do
       content = "Content <!-- speaker Notes: test -->"
-      
+
       {_clean, notes} = Parser.extract_speaker_notes(content)
-      
+
       assert notes == "test"
     end
 
     test "returns nil when no speaker notes" do
       content = """
       # Regular slide
-      
+
       Just normal content
       """
 
@@ -246,7 +246,7 @@ defmodule ElixirNoDeps.Presenter.ParserTest do
     test "handles multiline speaker notes" do
       content = """
       # Slide
-      
+
       <!-- Speaker notes: 
            This is a multiline note
            with multiple lines -->

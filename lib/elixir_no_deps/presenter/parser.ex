@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Parser do
   @moduledoc """
   Parses markdown files into presentations with slides.
-  
+
   Supports:
   - YAML frontmatter for presentation metadata
   - Slide separation with `---`
@@ -13,7 +13,7 @@ defmodule ElixirNoDeps.Presenter.Parser do
 
   @doc """
   Parses a markdown file into a Presentation struct.
-  
+
   Expected format:
   ```
   ---
@@ -21,25 +21,26 @@ defmodule ElixirNoDeps.Presenter.Parser do
   author: "John Doe"
   theme: "dark"
   ---
-  
+
   # First Slide
-  
+
   Content here
-  
+
   ---
-  
+
   # Second Slide
-  
+
   More content
   ```
   """
   @spec parse_file(String.t()) :: {:ok, Presentation.t()} | {:error, String.t()}
   def parse_file(file_path) do
     case File.read(file_path) do
-      {:ok, content} -> 
+      {:ok, content} ->
         presentation = parse_content(content, file_path: file_path)
         {:ok, presentation}
-      {:error, reason} -> 
+
+      {:error, reason} ->
         {:error, "Failed to read file: #{reason}"}
     end
   end
@@ -51,17 +52,18 @@ defmodule ElixirNoDeps.Presenter.Parser do
   def parse_content(content, opts \\ []) do
     {metadata, slides_content} = extract_frontmatter(content)
     slides = parse_slides(slides_content)
-    
-    presentation_opts = metadata
-                        |> Map.to_list()
-                        |> Keyword.merge(opts)
+
+    presentation_opts =
+      metadata
+      |> Map.to_list()
+      |> Keyword.merge(opts)
 
     Presentation.new(slides, presentation_opts)
   end
 
   @doc """
   Extracts YAML frontmatter from the beginning of the content.
-  
+
   Returns {metadata, remaining_content}
   """
   @spec extract_frontmatter(String.t()) :: {map(), String.t()}
@@ -70,6 +72,7 @@ defmodule ElixirNoDeps.Presenter.Parser do
       "---" <> _ ->
         # Content starts with frontmatter
         extract_yaml_frontmatter(content)
+
       _ ->
         # No frontmatter
         {%{}, content}
@@ -88,27 +91,28 @@ defmodule ElixirNoDeps.Presenter.Parser do
     |> Enum.with_index(1)
     |> Enum.map(fn {slide_content, index} ->
       {clean_content, speaker_notes} = extract_speaker_notes(slide_content)
-      
-      Slide.new(clean_content, [
+
+      Slide.new(clean_content,
         slide_number: index,
         speaker_notes: speaker_notes
-      ])
+      )
     end)
   end
 
   @doc """
   Extracts speaker notes from HTML comments in slide content.
-  
+
   Speaker notes format: <!-- Speaker notes: Your notes here -->
   """
   @spec extract_speaker_notes(String.t()) :: {String.t(), String.t() | nil}
   def extract_speaker_notes(content) do
     speaker_notes_regex = ~r/<!--\s*[Ss]peaker\s+[Nn]otes?:\s*(.*?)\s*-->/s
-    
+
     case Regex.run(speaker_notes_regex, content) do
       [full_match, notes] ->
         clean_content = String.replace(content, full_match, "")
         {String.trim(clean_content), String.trim(notes)}
+
       nil ->
         {content, nil}
     end
@@ -121,6 +125,7 @@ defmodule ElixirNoDeps.Presenter.Parser do
       [_full, yaml_content, remaining] ->
         metadata = parse_yaml(yaml_content)
         {metadata, remaining}
+
       nil ->
         {%{}, content}
     end
@@ -140,6 +145,7 @@ defmodule ElixirNoDeps.Presenter.Parser do
           clean_key = key |> String.trim() |> String.to_atom()
           clean_value = value |> String.trim() |> unquote_string()
           Map.put(acc, clean_key, clean_value)
+
         _ ->
           acc
       end

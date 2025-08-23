@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.CLI do
   @moduledoc """
   Command-line interface for the ElixirNoDeps Presenter.
-  
+
   This module serves as the main entry point for the escript version,
   providing true raw keyboard input capabilities outside of Mix.
   """
@@ -14,30 +14,31 @@ defmodule ElixirNoDeps.Presenter.CLI do
   def main(args) do
     # Set up proper shutdown handling
     Process.flag(:trap_exit, true)
-    
+
     case parse_args(args) do
       {:ok, file_path, opts} ->
         # Ensure applications are started
         Application.ensure_all_started(:elixir_no_deps)
-        
+
         # Show startup message
         IO.puts("🚀 ElixirNoDeps Presenter (escript version)")
         IO.puts("📁 Loading: #{file_path}")
         IO.puts("")
-        
+
         # Run the presentation
         case Presenter.run(file_path, opts) do
           :ok ->
             System.halt(0)
+
           {:error, reason} ->
             IO.puts("❌ Error: #{reason}")
             System.halt(1)
         end
-        
+
       {:error, :help} ->
         print_help()
         System.halt(0)
-        
+
       {:error, reason} ->
         IO.puts("❌ #{reason}")
         print_usage()
@@ -133,7 +134,7 @@ defmodule ElixirNoDeps.Presenter.CLI do
   defp print_usage do
     IO.puts("""
     Usage: present <file.md> [options]
-    
+
     Try 'present --help' for more information.
     """)
   end

@@ -7,18 +7,18 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
     test "extracts ASCII image paths from content" do
       content = """
       # My Slide
-      
+
       Here's an image:
       ![ascii](tinyllama.jpg)
-      
+
       And another:
       ![ascii](path/to/image.png)
-      
+
       Regular image: ![regular](normal.jpg)
       """
 
       paths = AsciiProcessor.extract_ascii_paths(content)
-      
+
       assert length(paths) == 2
       assert "tinyllama.jpg" in paths
       assert "path/to/image.png" in paths
@@ -42,7 +42,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
       """
 
       paths = AsciiProcessor.extract_ascii_paths(content)
-      
+
       assert length(paths) == 2
       assert "same.jpg" in paths
       assert "different.jpg" in paths
@@ -53,7 +53,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
     test "replaces ASCII image references with placeholder when file doesn't exist" do
       content = "Look at this: ![ascii](nonexistent.jpg)"
       result = AsciiProcessor.process_ascii_art(content)
-      
+
       refute String.contains?(result, "![ascii](nonexistent.jpg)")
       assert String.contains?(result, "ASCII Art Error")
       assert String.contains?(result, "nonexistent.jpg")
@@ -62,7 +62,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
     test "leaves regular image references unchanged" do
       content = "Regular image: ![photo](image.jpg)"
       result = AsciiProcessor.process_ascii_art(content)
-      
+
       assert result == content
     end
 
@@ -71,9 +71,9 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
       First: ![ascii](first.jpg)
       Second: ![ascii](second.jpg)
       """
-      
+
       result = AsciiProcessor.process_ascii_art(content)
-      
+
       refute String.contains?(result, "![ascii](first.jpg)")
       refute String.contains?(result, "![ascii](second.jpg)")
       assert String.contains?(result, "ASCII Art Error")
@@ -82,7 +82,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
     test "handles case insensitive ASCII references" do
       content = "Mixed case: ![ASCII](image.jpg)"
       result = AsciiProcessor.process_ascii_art(content)
-      
+
       refute String.contains?(result, "![ASCII](image.jpg)")
       assert String.contains?(result, "ASCII Art Error")
     end
@@ -91,7 +91,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
   describe "generate_ascii_art/1" do
     test "returns error placeholder for non-existent file" do
       result = AsciiProcessor.generate_ascii_art("nonexistent.jpg")
-      
+
       assert String.contains?(result, "ASCII Art Error")
       assert String.contains?(result, "nonexistent.jpg")
       assert String.contains?(result, "Image file not found")
@@ -101,12 +101,13 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessorTest do
       # Create a temporary empty file
       temp_file = "/tmp/test_ascii_#{System.unique_integer()}.jpg"
       File.write!(temp_file, "fake image content")
-      
+
       result = AsciiProcessor.generate_ascii_art(temp_file)
-      
+
       # Should get error placeholder since it's not a real image
-      assert String.contains?(result, "ASCII") # Either ASCII art or error
-      
+      # Either ASCII art or error
+      assert String.contains?(result, "ASCII")
+
       File.rm(temp_file)
     end
   end

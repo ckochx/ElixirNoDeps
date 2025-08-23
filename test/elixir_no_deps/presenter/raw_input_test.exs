@@ -7,22 +7,25 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
     test "enable and disable raw mode without errors" do
       # Test that we can enable raw mode
       result_enable = RawInput.enable_raw_mode()
-      assert result_enable in [:ok, :error] # Should not crash
-      
+      # Should not crash
+      assert result_enable in [:ok, :error]
+
       # Test that we can disable raw mode
       result_disable = RawInput.disable_raw_mode()
-      assert result_disable in [:ok, :error] # Should not crash
+      # Should not crash
+      assert result_disable in [:ok, :error]
     end
   end
 
   describe "with_raw_mode/1" do
     test "executes function and restores terminal mode" do
       test_value = :test_result
-      
-      result = RawInput.with_raw_mode(fn ->
-        test_value
-      end)
-      
+
+      result =
+        RawInput.with_raw_mode(fn ->
+          test_value
+        end)
+
       assert result == test_value
     end
 
@@ -32,7 +35,7 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
           raise "test error"
         end)
       end
-      
+
       # Terminal should be restored (we can't easily test this automatically)
       # but the function should complete without hanging
     end
@@ -49,12 +52,12 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
   describe "get_terminal_size/0" do
     test "returns reasonable terminal dimensions" do
       {width, height} = RawInput.get_terminal_size()
-      
+
       assert is_integer(width)
       assert is_integer(height)
       assert width > 0
       assert height > 0
-      
+
       # Should be reasonable values (at least minimum terminal size)
       assert width >= 20
       assert height >= 5
@@ -64,7 +67,7 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
       # Mock System.cmd to fail
       # (This is tricky to test without actual mocking, so we test the fallback behavior)
       {width, height} = RawInput.get_terminal_size()
-      
+
       # Should at least return integers
       assert is_integer(width)
       assert is_integer(height)
@@ -74,12 +77,12 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
   # Note: Testing get_raw_char/0 and get_raw_key/0 is challenging
   # because they require actual keyboard input. These would need
   # integration tests or mocking of the terminal input.
-  
+
   describe "raw input functions" do
     test "get_raw_char handles error cases gracefully" do
       # We can't easily test actual input, but we can test that
       # the function exists and handles errors gracefully
-      
+
       # The function should exist and be callable
       assert function_exported?(RawInput, :get_raw_char, 0)
       assert function_exported?(RawInput, :get_raw_key, 0)
@@ -91,16 +94,24 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
     test "control character identification" do
       # Verify that our escape sequence patterns are correct
       # (These are unit tests for the private pattern matching logic)
-      
+
       # Test that we have reasonable key mappings
-      assert "\x03" == "\x03" # Ctrl+C
-      assert "\x04" == "\x04" # Ctrl+D
-      assert "\x1A" == "\x1A" # Ctrl+Z
-      assert "\r" == "\r"     # Return
-      assert "\n" == "\n"     # Newline
-      assert "\t" == "\t"     # Tab
-      assert "\x7F" == "\x7F" # Backspace
-      assert "\x08" == "\x08" # Alternate backspace
+      # Ctrl+C
+      assert "\x03" == "\x03"
+      # Ctrl+D
+      assert "\x04" == "\x04"
+      # Ctrl+Z
+      assert "\x1A" == "\x1A"
+      # Return
+      assert "\r" == "\r"
+      # Newline
+      assert "\n" == "\n"
+      # Tab
+      assert "\t" == "\t"
+      # Backspace
+      assert "\x7F" == "\x7F"
+      # Alternate backspace
+      assert "\x08" == "\x08"
     end
   end
 end
