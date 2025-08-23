@@ -12,6 +12,7 @@ defmodule ElixirNoDeps.HTTP do
       case ElixirNoDeps.HTTP.Client.get_body(url) do
         {:ok, html} ->
           {:ok, ElixirNoDeps.HTTP.Renderer.to_text(html)}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -24,6 +25,7 @@ defmodule ElixirNoDeps.HTTP do
       case ElixirNoDeps.HTTP.Client.get_body(url) do
         {:ok, html} ->
           {:ok, ElixirNoDeps.HTTP.Renderer.to_terminal(html)}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -37,6 +39,7 @@ defmodule ElixirNoDeps.HTTP do
         {:ok, html} ->
           summary = ElixirNoDeps.HTTP.Renderer.summarize(html)
           {:ok, Map.put(summary, :url, url)}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -49,6 +52,7 @@ defmodule ElixirNoDeps.HTTP do
       case ElixirNoDeps.HTTP.Client.get_body(url) do
         {:ok, html} ->
           {:ok, ElixirNoDeps.HTTP.Renderer.extract_links(html)}
+
         {:error, reason} ->
           {:error, reason}
       end
@@ -62,6 +66,7 @@ defmodule ElixirNoDeps.HTTP do
         {:ok, content} ->
           IO.puts(content)
           :ok
+
         {:error, reason} ->
           IO.puts("Error fetching #{url}: #{inspect(reason)}")
           {:error, reason}
@@ -82,6 +87,7 @@ defmodule ElixirNoDeps.HTTP do
           IO.puts("")
           IO.puts("--- End of page ---")
           :ok
+
         {:error, reason} ->
           IO.puts("Error: #{inspect(reason)}")
           {:error, reason}

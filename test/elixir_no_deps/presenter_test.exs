@@ -37,12 +37,13 @@ defmodule ElixirNoDeps.PresenterTest do
     test "parses and loads presentation file", %{file_path: file_path} do
       # We can't easily test the full interactive run without mocking IO
       # But we can test the parsing and setup logic
-      
+
       case ElixirNoDeps.Presenter.Parser.parse_file(file_path) do
         {:ok, presentation} ->
           assert presentation.title == "Test Presentation"
           assert presentation.author == "Test Author"
           assert Presentation.slide_count(presentation) == 2
+
         {:error, reason} ->
           flunk("Expected successful parsing, got: #{reason}")
       end
@@ -66,7 +67,7 @@ defmodule ElixirNoDeps.PresenterTest do
       File.write!(tmp_file, empty_content)
 
       result = Presenter.run(tmp_file)
-      
+
       File.rm!(tmp_file)
       assert {:error, "No slides found"} = result
     end
@@ -76,7 +77,7 @@ defmodule ElixirNoDeps.PresenterTest do
     test "creates and runs demo presentation" do
       # We can't fully test the interactive demo, but we can verify
       # it doesn't crash and creates valid content
-      
+
       # Mock the Navigator.run to avoid interactive mode
       # This is a basic test that the demo content is valid
       demo_content = """
@@ -111,10 +112,11 @@ defmodule ElixirNoDeps.PresenterTest do
       slides = [Slide.new("# Test")]
       presentation = Presentation.new(slides)
 
-      updated = presentation
-                |> Map.put(:theme, "dark")
-                |> Map.put(:author, "New Author")
-                |> Map.put(:title, "New Title")
+      updated =
+        presentation
+        |> Map.put(:theme, "dark")
+        |> Map.put(:author, "New Author")
+        |> Map.put(:title, "New Title")
 
       assert updated.theme == "dark"
       assert updated.author == "New Author"

@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   @moduledoc """
   Processes ASCII art directives in presentation slides.
-  
+
   Supports:
   - ![ascii](image_path) syntax for inline ASCII art
   - Caching of generated ASCII art for performance  
@@ -13,7 +13,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
 
   @doc """
   Processes a slide's content to replace ASCII art directives with actual ASCII art.
-  
+
   Supports markdown image syntax with 'ascii' alt text:
   ![ascii](path/to/image.jpg)
   ![ascii](path/to/image.png)
@@ -22,14 +22,16 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   def process_ascii_art(content) do
     # Match ![ascii](image_path) patterns
     ascii_regex = ~r/!\[ascii\]\(([^)]+)\)/i
-    
+
     String.replace(content, ascii_regex, fn match ->
       # Extract the image path from the match
       case Regex.run(ascii_regex, match) do
         [_full_match, image_path] ->
           generate_ascii_art(String.trim(image_path))
+
         _ ->
-          match # Return original if parsing fails
+          # Return original if parsing fails
+          match
       end
     end)
   end
@@ -40,15 +42,17 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   @spec generate_ascii_art(String.t()) :: String.t()
   def generate_ascii_art(image_path) do
     cache_key = "ascii_art:#{image_path}"
-    
+
     case get_cached_ascii(cache_key) do
       {:ok, cached_art} ->
         cached_art
+
       :error ->
         case create_ascii_art(image_path) do
           {:ok, ascii_art} ->
             cache_ascii_art(cache_key, ascii_art)
             ascii_art
+
           {:error, reason} ->
             create_error_placeholder(image_path, reason)
         end
@@ -61,13 +65,14 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   @spec preload_ascii_art([String.t()]) :: :ok
   def preload_ascii_art(image_paths) do
     # Process images in parallel using tasks
-    tasks = Enum.map(image_paths, fn path ->
-      Task.async(fn -> generate_ascii_art(path) end)
-    end)
-    
+    tasks =
+      Enum.map(image_paths, fn path ->
+        Task.async(fn -> generate_ascii_art(path) end)
+      end)
+
     # Wait for all tasks to complete
     Task.await_many(tasks, :infinity)
-    
+
     :ok
   end
 
@@ -77,7 +82,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   @spec extract_ascii_paths(String.t()) :: [String.t()]
   def extract_ascii_paths(content) do
     ascii_regex = ~r/!\[ascii\]\(([^)]+)\)/i
-    
+
     Regex.scan(ascii_regex, content)
     |> Enum.map(fn [_full_match, path] -> String.trim(path) end)
     |> Enum.uniq()
@@ -94,12 +99,14 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
         {:ok, keys} ->
           ascii_keys = Enum.filter(keys, &String.starts_with?(&1, "ascii_art:"))
           Enum.each(ascii_keys, &ETSCache.delete/1)
+
         :error ->
           :ok
       end
     rescue
       _ -> :ok
     end
+
     :ok
   end
 
@@ -121,7 +128,8 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
       # Cache for 1 hour (3600 seconds)
       ETSCache.put(cache_key, ascii_art, ttl: 3600)
     rescue
-      _ -> :ok # Gracefully handle cache failures
+      # Gracefully handle cache failures
+      _ -> :ok
     end
   end
 
@@ -155,7 +163,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
     [ASCII Art Error]
     Image: #{image_path}
     Error: #{reason}
-    
+
     ┌─────────────────────┐
     │   Image Loading     │
     │      Failed         │
@@ -213,11 +221,12 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   defp pixels_to_rows(pixel, acc) do
     row = pixel |> Enum.at(1) |> String.to_integer()
 
-    acc = if Enum.at(acc, row) == nil do
-      acc ++ [[]]
-    else
-      acc
-    end
+    acc =
+      if Enum.at(acc, row) == nil do
+        acc ++ [[]]
+      else
+        acc
+      end
 
     acc |> List.replace_at(row, Enum.at(acc, row) ++ [pixel])
   end
@@ -236,13 +245,14 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
 
   defp parse_percentage_to_rgb(percentage_str) do
     cleaned = String.replace(percentage_str, "%", "")
-    
-    value = if String.contains?(cleaned, ".") do
-      String.to_float(cleaned)
-    else
-      String.to_integer(cleaned) |> Kernel./(1.0)
-    end
-    
+
+    value =
+      if String.contains?(cleaned, ".") do
+        String.to_float(cleaned)
+      else
+        String.to_integer(cleaned) |> Kernel./(1.0)
+      end
+
     (value * 255 / 100) |> round()
   end
 

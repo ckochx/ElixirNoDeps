@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Presentation do
   @moduledoc """
   Represents a complete presentation containing multiple slides.
-  
+
   Manages:
   - Collection of slides
   - Presentation metadata (title, author, theme)
@@ -24,16 +24,16 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   ]
 
   @type t :: %__MODULE__{
-    title: String.t() | nil,
-    author: String.t() | nil,
-    theme: String.t(),
-    slides: [Slide.t()],
-    current_slide: non_neg_integer(),
-    file_path: String.t() | nil,
-    metadata: map(),
-    created_at: DateTime.t(),
-    updated_at: DateTime.t()
-  }
+          title: String.t() | nil,
+          author: String.t() | nil,
+          theme: String.t(),
+          slides: [Slide.t()],
+          current_slide: non_neg_integer(),
+          file_path: String.t() | nil,
+          metadata: map(),
+          created_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   @default_theme "default"
 
@@ -43,7 +43,7 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   @spec new([Slide.t()], keyword()) :: t()
   def new(slides \\ [], opts \\ []) do
     now = DateTime.utc_now()
-    
+
     %__MODULE__{
       title: Keyword.get(opts, :title),
       author: Keyword.get(opts, :author),
@@ -62,6 +62,7 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   """
   @spec current_slide(t()) :: Slide.t() | nil
   def current_slide(%__MODULE__{slides: [], current_slide: _}), do: nil
+
   def current_slide(%__MODULE__{slides: slides, current_slide: index}) do
     Enum.at(slides, index)
   end
@@ -73,7 +74,7 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   def next_slide(%__MODULE__{slides: slides, current_slide: current} = presentation) do
     max_index = length(slides) - 1
     new_index = min(current + 1, max_index)
-    
+
     %{presentation | current_slide: new_index, updated_at: DateTime.utc_now()}
   end
 
@@ -83,7 +84,7 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   @spec prev_slide(t()) :: t()
   def prev_slide(%__MODULE__{current_slide: current} = presentation) do
     new_index = max(current - 1, 0)
-    
+
     %{presentation | current_slide: new_index, updated_at: DateTime.utc_now()}
   end
 
@@ -94,7 +95,7 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   def goto_slide(%__MODULE__{slides: slides} = presentation, index) do
     max_index = length(slides) - 1
     new_index = max(0, min(index, max_index))
-    
+
     %{presentation | current_slide: new_index, updated_at: DateTime.utc_now()}
   end
 

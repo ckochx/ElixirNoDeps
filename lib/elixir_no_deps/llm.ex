@@ -4,11 +4,12 @@ defmodule ElixirNoDeps.LLM do
   """
 
   def generate(url, data, headers \\ []) when is_map(data) do
-    data_string = data
-    |> Map.put_new(:stream, false)
-    |> Map.put_new(:system, @default_system_prompt)
-    |> Map.put_new(:model, "tinyllama")
-    |> JSON.encode!()
+    data_string =
+      data
+      |> Map.put_new(:stream, false)
+      |> Map.put_new(:system, @default_system_prompt)
+      |> Map.put_new(:model, "tinyllama")
+      |> JSON.encode!()
 
     ElixirNoDeps.HttpC.post(url, data_string, headers)
   end

@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Slide do
   @moduledoc """
   Represents a single slide in a presentation.
-  
+
   A slide contains:
   - Raw markdown content
   - Processed content for display
@@ -20,14 +20,14 @@ defmodule ElixirNoDeps.Presenter.Slide do
   ]
 
   @type t :: %__MODULE__{
-    id: String.t(),
-    title: String.t() | nil,
-    content: String.t(),
-    raw_content: String.t(),
-    speaker_notes: String.t() | nil,
-    metadata: map(),
-    slide_number: integer()
-  }
+          id: String.t(),
+          title: String.t() | nil,
+          content: String.t(),
+          raw_content: String.t(),
+          speaker_notes: String.t() | nil,
+          metadata: map(),
+          slide_number: integer()
+        }
 
   @doc """
   Creates a new slide with the given content and metadata.
@@ -36,7 +36,7 @@ defmodule ElixirNoDeps.Presenter.Slide do
   def new(content, opts \\ []) do
     id = generate_id()
     slide_number = Keyword.get(opts, :slide_number, 1)
-    
+
     %__MODULE__{
       id: id,
       title: extract_title(content),
@@ -57,8 +57,10 @@ defmodule ElixirNoDeps.Presenter.Slide do
     |> String.split("\n")
     |> Enum.find(&String.starts_with?(&1, "#"))
     |> case do
-      nil -> nil
-      title_line -> 
+      nil ->
+        nil
+
+      title_line ->
         title_line
         |> String.replace(~r/^#+\s*/, "")
         |> String.trim()

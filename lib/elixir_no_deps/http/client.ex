@@ -40,9 +40,10 @@ defmodule ElixirNoDeps.HTTP.Client do
     follow_redirect = Keyword.get(options, :follow_redirect, true)
 
     # Convert headers to the format expected by httpc
-    httpc_headers = Enum.map(headers, fn {key, value} ->
-      {to_charlist(key), to_charlist(value)}
-    end)
+    httpc_headers =
+      Enum.map(headers, fn {key, value} ->
+        {to_charlist(key), to_charlist(value)}
+      end)
 
     # Set up httpc options
     httpc_options = [
@@ -57,9 +58,10 @@ defmodule ElixirNoDeps.HTTP.Client do
     case :httpc.request(:get, {char_url, httpc_headers}, httpc_options, []) do
       {:ok, {{_http_version, status_code, _reason_phrase}, response_headers, body}} ->
         # Convert response headers back to strings
-        parsed_headers = Enum.map(response_headers, fn {key, value} ->
-          {to_string(key), to_string(value)}
-        end)
+        parsed_headers =
+          Enum.map(response_headers, fn {key, value} ->
+            {to_string(key), to_string(value)}
+          end)
 
         {:ok, {status_code, parsed_headers, to_string(body)}}
 
@@ -125,9 +127,10 @@ defmodule ElixirNoDeps.HTTP.Client do
     follow_redirect = Keyword.get(options, :follow_redirect, true)
 
     # Convert headers to the format expected by httpc
-    httpc_headers = Enum.map(headers, fn {key, value} ->
-      {to_charlist(key), to_charlist(value)}
-    end)
+    httpc_headers =
+      Enum.map(headers, fn {key, value} ->
+        {to_charlist(key), to_charlist(value)}
+      end)
 
     # Set up httpc options
     httpc_options = [
@@ -141,19 +144,21 @@ defmodule ElixirNoDeps.HTTP.Client do
     char_body = to_charlist(body)
 
     # Build the request tuple based on whether we have a body
-    request_tuple = if body != "" do
-      {char_url, httpc_headers, char_content_type, char_body}
-    else
-      {char_url, httpc_headers}
-    end
+    request_tuple =
+      if body != "" do
+        {char_url, httpc_headers, char_content_type, char_body}
+      else
+        {char_url, httpc_headers}
+      end
 
     # Make the HTTP request
     case :httpc.request(method, request_tuple, httpc_options, []) do
       {:ok, {{_http_version, status_code, _reason_phrase}, response_headers, response_body}} ->
         # Convert response headers back to strings
-        parsed_headers = Enum.map(response_headers, fn {key, value} ->
-          {to_string(key), to_string(value)}
-        end)
+        parsed_headers =
+          Enum.map(response_headers, fn {key, value} ->
+            {to_string(key), to_string(value)}
+          end)
 
         {:ok, {status_code, parsed_headers, to_string(response_body)}}
 

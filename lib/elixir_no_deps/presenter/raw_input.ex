@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.RawInput do
   @moduledoc """
   Raw keyboard input handling for terminal presentations.
-  
+
   Provides single-key input without requiring Enter key presses.
   Handles terminal mode switching for better user experience.
   """
@@ -38,25 +38,51 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       "\e" ->
         # Handle escape sequences (arrow keys, function keys, etc.)
         handle_escape_sequence()
-      
+
       # Control characters
-      "\x03" -> :ctrl_c  # Ctrl+C
-      "\x04" -> :ctrl_d  # Ctrl+D  
-      "\x1A" -> :ctrl_z  # Ctrl+Z
-      "\r" -> :enter     # Enter/Return
-      "\n" -> :enter     # Newline
-      "\t" -> :tab       # Tab
-      "\x7F" -> :backspace # Backspace
-      "\x08" -> :backspace # Alternate backspace
-      
+      # Ctrl+C
+      "\x03" ->
+        :ctrl_c
+
+      # Ctrl+D  
+      "\x04" ->
+        :ctrl_d
+
+      # Ctrl+Z
+      "\x1A" ->
+        :ctrl_z
+
+      # Enter/Return
+      "\r" ->
+        :enter
+
+      # Newline
+      "\n" ->
+        :enter
+
+      # Tab
+      "\t" ->
+        :tab
+
+      # Backspace
+      "\x7F" ->
+        :backspace
+
+      # Alternate backspace
+      "\x08" ->
+        :backspace
+
       # Regular character
-      char when is_binary(char) -> char
-      
+      char when is_binary(char) ->
+        char
+
       # Handle end of file
-      :eof -> :error
-      
+      :eof ->
+        :error
+
       # Error case
-      :error -> :error
+      :error ->
+        :error
     end
   end
 
@@ -69,14 +95,18 @@ defmodule ElixirNoDeps.Presenter.RawInput do
     try do
       # First try the minimal stty command needed
       case System.cmd("stty", ["raw", "-echo"], stderr_to_stdout: true) do
-        {_output, 0} -> 
+        {_output, 0} ->
           :ok
+
         {error, _code} ->
           # If raw mode fails, try -icanon instead
           case System.cmd("stty", ["-icanon", "-echo"], stderr_to_stdout: true) do
-            {_output, 0} -> :ok
-            {_error, _code} -> 
-              if String.contains?(error, "not a tty") or String.contains?(error, "inappropriate ioctl") do
+            {_output, 0} ->
+              :ok
+
+            {_error, _code} ->
+              if String.contains?(error, "not a tty") or
+                   String.contains?(error, "inappropriate ioctl") do
                 :not_a_tty
               else
                 :error
@@ -96,13 +126,18 @@ defmodule ElixirNoDeps.Presenter.RawInput do
     try do
       # Try to restore with cooked mode first
       case System.cmd("stty", ["cooked", "echo"], stderr_to_stdout: true) do
-        {_output, 0} -> :ok
+        {_output, 0} ->
+          :ok
+
         {_error, _code} ->
           # If cooked fails, try icanon
           case System.cmd("stty", ["icanon", "echo"], stderr_to_stdout: true) do
-            {_output, 0} -> :ok
-            {error, _code} -> 
-              if String.contains?(error, "not a tty") or String.contains?(error, "inappropriate ioctl") do
+            {_output, 0} ->
+              :ok
+
+            {error, _code} ->
+              if String.contains?(error, "not a tty") or
+                   String.contains?(error, "inappropriate ioctl") do
                 :not_a_tty
               else
                 :error
@@ -118,7 +153,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   Safely wraps a function call with raw mode handling.
   Ensures terminal is properly restored even if the function fails.
   """
-  @spec with_raw_mode((() -> any())) :: any()
+  @spec with_raw_mode((-> any())) :: any()
   def with_raw_mode(func) when is_function(func, 0) do
     case enable_raw_mode() do
       :ok ->
@@ -135,6 +170,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
             disable_raw_mode()
             :erlang.raise(type, value, __STACKTRACE__)
         end
+
       :error ->
         # Run function without raw mode if it fails
         func.()
@@ -151,11 +187,15 @@ defmodule ElixirNoDeps.Presenter.RawInput do
         case String.trim(output) |> String.split() do
           [rows, cols] ->
             {String.to_integer(cols), String.to_integer(rows)}
+
           _ ->
-            {80, 24} # Default fallback
+            # Default fallback
+            {80, 24}
         end
+
       {_error, _code} ->
-        {80, 24} # Default fallback
+        # Default fallback
+        {80, 24}
     end
   rescue
     _error ->
@@ -169,15 +209,15 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       "[" ->
         # ANSI escape sequence
         handle_ansi_sequence()
-      
+
       "O" ->
         # Alternative function key format
         handle_function_key()
-      
+
       char when is_binary(char) ->
         # Some other escape sequence, treat as alt+key
         {:alt, char}
-      
+
       :error ->
         :escape
     end
@@ -185,35 +225,60 @@ defmodule ElixirNoDeps.Presenter.RawInput do
 
   defp handle_ansi_sequence do
     case get_raw_char() do
-      "A" -> :arrow_up
-      "B" -> :arrow_down  
-      "C" -> :arrow_right
-      "D" -> :arrow_left
-      
+      "A" ->
+        :arrow_up
+
+      "B" ->
+        :arrow_down
+
+      "C" ->
+        :arrow_right
+
+      "D" ->
+        :arrow_left
+
       # Home/End/Insert/Delete/Page Up/Page Down
-      "H" -> :home
-      "F" -> :end
-      "2" -> read_extended_key("~", :insert)
-      "3" -> read_extended_key("~", :delete) 
-      "5" -> read_extended_key("~", :page_up)
-      "6" -> read_extended_key("~", :page_down)
-      
+      "H" ->
+        :home
+
+      "F" ->
+        :end
+
+      "2" ->
+        read_extended_key("~", :insert)
+
+      "3" ->
+        read_extended_key("~", :delete)
+
+      "5" ->
+        read_extended_key("~", :page_up)
+
+      "6" ->
+        read_extended_key("~", :page_down)
+
       # Function keys F1-F12
-      "1" -> handle_f1_to_f4()
-      "2" -> handle_f5_to_f8()
-      "3" -> handle_f9_to_f12()
-      
+      "1" ->
+        handle_f1_to_f4()
+
+      "2" ->
+        handle_f5_to_f8()
+
+      "3" ->
+        handle_f9_to_f12()
+
       # Extended sequences that end with letters
       char when is_binary(char) and byte_size(char) == 1 ->
         case char do
           letter when letter >= "A" and letter <= "Z" ->
             {:extended, letter}
+
           digit when digit >= "0" and digit <= "9" ->
             read_multi_char_sequence(digit)
+
           _ ->
             :unknown
         end
-      
+
       :error ->
         :escape
     end
@@ -222,7 +287,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   defp handle_function_key do
     case get_raw_char() do
       "P" -> :f1
-      "Q" -> :f2  
+      "Q" -> :f2
       "R" -> :f3
       "S" -> :f4
       char -> {:function, char}
@@ -240,7 +305,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
     case get_raw_char() do
       "1" -> read_extended_key("~", :f1)
       "2" -> read_extended_key("~", :f2)
-      "3" -> read_extended_key("~", :f3) 
+      "3" -> read_extended_key("~", :f3)
       "4" -> read_extended_key("~", :f4)
       "5" -> read_extended_key("~", :f5)
       _ -> :unknown
@@ -274,11 +339,11 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       char when char in ["~", "A", "B", "C", "D", "H", "F", "P", "Q", "R", "S"] ->
         # Terminator found
         Enum.reverse([char | acc]) |> Enum.join()
-      
+
       char when is_binary(char) and byte_size(char) == 1 ->
         # Continue reading
         read_until_terminator([char | acc])
-      
+
       :error ->
         # End of sequence
         Enum.reverse(acc) |> Enum.join()

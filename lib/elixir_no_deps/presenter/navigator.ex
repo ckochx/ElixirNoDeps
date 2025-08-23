@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.Navigator do
   @moduledoc """
   Handles keyboard navigation and input processing for presentations.
-  
+
   Manages:
   - Keyboard input capture and processing
   - Navigation commands (next, prev, goto, quit)
@@ -34,6 +34,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
       {:ok, _pid} ->
         render_current_slide()
         navigation_loop()
+
       {:error, reason} ->
         IO.puts("Failed to start navigator: #{inspect(reason)}")
         :error
@@ -78,8 +79,10 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     case process_navigation_command(command, presentation) do
       {:ok, new_presentation} ->
         {:reply, :ok, new_presentation}
+
       {:quit} ->
         {:stop, :normal, :quit, presentation}
+
       {:error, _reason} ->
         {:reply, :error, presentation}
     end
@@ -121,12 +124,16 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     case get_input() do
       :quit ->
         :ok
+
       command ->
         case navigate(command) do
-          :quit -> :ok
-          :ok -> 
+          :quit ->
+            :ok
+
+          :ok ->
             render_current_slide()
             navigation_loop()
+
           :error ->
             navigation_loop()
         end
@@ -139,50 +146,105 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     get_simple_input()
   end
 
-
   # Simplified input method that works in Mix context
   defp get_simple_input do
     case SimpleInput.get_smart_input() do
       # Quit commands
-      "q" -> :quit
-      "Q" -> :quit
-      :quit -> :quit
-      
+      "q" ->
+        :quit
+
+      "Q" ->
+        :quit
+
+      :quit ->
+        :quit
+
       # Next slide commands
-      " " -> :next_slide          # Spacebar (primary)
-      "n" -> :next_slide          # n key
-      "j" -> :next_slide          # vim down
-      :arrow_right -> :next_slide  # Right arrow
-      :arrow_down -> :next_slide   # Down arrow
-      :enter -> :next_slide        # Enter key
-      
+      # Spacebar (primary)
+      " " ->
+        :next_slide
+
+      # n key
+      "n" ->
+        :next_slide
+
+      # vim down
+      "j" ->
+        :next_slide
+
+      # Right arrow
+      :arrow_right ->
+        :next_slide
+
+      # Down arrow
+      :arrow_down ->
+        :next_slide
+
+      # Enter key
+      :enter ->
+        :next_slide
+
       # Previous slide commands  
-      "p" -> :prev_slide          # p key
-      "k" -> :prev_slide          # vim up
-      "h" -> :prev_slide          # vim left
-      :arrow_left -> :prev_slide   # Left arrow
-      :arrow_up -> :prev_slide     # Up arrow
-      "\x7F" -> :prev_slide       # Backspace
-      "\x08" -> :prev_slide       # Alt backspace
-      
+      # p key
+      "p" ->
+        :prev_slide
+
+      # vim up
+      "k" ->
+        :prev_slide
+
+      # vim left
+      "h" ->
+        :prev_slide
+
+      # Left arrow
+      :arrow_left ->
+        :prev_slide
+
+      # Up arrow
+      :arrow_up ->
+        :prev_slide
+
+      # Backspace
+      "\x7F" ->
+        :prev_slide
+
+      # Alt backspace
+      "\x08" ->
+        :prev_slide
+
       # Navigation shortcuts
-      "0" -> :first_slide         # Go to first slide
-      "$" -> :last_slide          # Go to last slide
-      
+      # Go to first slide
+      "0" ->
+        :first_slide
+
+      # Go to last slide
+      "$" ->
+        :last_slide
+
       # Utility commands
-      "r" -> :refresh             # Refresh/redraw
-      "?" -> :help                # Show help
-      "/" -> :help                # Alternative help
-      
+      # Refresh/redraw
+      "r" ->
+        :refresh
+
+      # Show help
+      "?" ->
+        :help
+
+      # Alternative help
+      "/" ->
+        :help
+
       # Handle numeric input for direct slide jumping
       key when is_binary(key) ->
         case Integer.parse(key) do
           {num, ""} when num > 0 -> {:goto_slide, num - 1}
           _ -> :unknown
         end
-      
+
       # Unknown/unsupported keys
-      _ -> :unknown
+      _ ->
+        :unknown
     end
   end
 
@@ -192,14 +254,16 @@ defmodule ElixirNoDeps.Presenter.Navigator do
         if Presentation.has_next?(presentation) do
           {:ok, Presentation.next_slide(presentation)}
         else
-          {:ok, presentation} # Stay on last slide
+          # Stay on last slide
+          {:ok, presentation}
         end
 
       :prev_slide ->
         if Presentation.has_prev?(presentation) do
           {:ok, Presentation.prev_slide(presentation)}
         else
-          {:ok, presentation} # Stay on first slide
+          # Stay on first slide
+          {:ok, presentation}
         end
 
       :first_slide ->
@@ -223,7 +287,8 @@ defmodule ElixirNoDeps.Presenter.Navigator do
         {:quit}
 
       :unknown ->
-        {:ok, presentation} # Ignore unknown commands
+        # Ignore unknown commands
+        {:ok, presentation}
 
       _ ->
         {:error, :invalid_command}
@@ -233,38 +298,38 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   defp show_help do
     Terminal.clear_screen()
     {width, height} = Terminal.get_dimensions()
-    
+
     help_text = """
     #{Terminal.style_text("PRESENTATION NAVIGATION HELP", :bright_cyan, :bold)}
-    
+
     #{Terminal.style_text("Navigation:", :bright_yellow, :bold)}
     Space, →, ↓, n, j, Enter    Next slide
     ←, ↑, p, k, h, Backspace   Previous slide
     0, Home                    First slide
     $, End                     Last slide
     1-9                        Jump to slide number
-    
+
     #{Terminal.style_text("Actions:", :bright_yellow, :bold)}
     r                 Refresh/redraw
     ?, /, F1          Show this help
     q, Q, Ctrl+C, Ctrl+D    Quit presentation
-    
+
     #{Terminal.style_text("✨ Raw keyboard input enabled!", :bright_magenta, nil)}
     #{Terminal.style_text("No need to press Enter - just press any key!", :bright_green, nil)}
-    
+
     #{Terminal.style_text("Press any key to continue...", :bright_green, nil)}
     """
-    
+
     # Center the help text
     lines = String.split(help_text, "\n")
     vertical_offset = div(height - length(lines), 2)
-    
+
     Enum.with_index(lines, vertical_offset)
     |> Enum.each(fn {line, row} ->
       centered = Terminal.center_text(line, width)
       Terminal.print_at(row, 1, centered)
     end)
-    
+
     # Wait for any key
     RawInput.get_raw_key()
   end
@@ -272,16 +337,18 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   defp configure_terminal do
     # Hide cursor for presentation mode
     Terminal.hide_cursor()
-    
+
     if running_as_escript?() do
       IO.puts("🎯 Escript mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
       IO.puts("   Type 'q' + ENTER to quit. Arrow keys not available.")
     else
       IO.puts("🎯 Mix mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
-      IO.puts("   Type 'q' + ENTER to quit. For better experience: mix escript.build && ./present file.md")
+
+      IO.puts(
+        "   Type 'q' + ENTER to quit. For better experience: mix escript.build && ./present file.md"
+      )
     end
   end
-
 
   defp running_as_escript? do
     case :escript.script_name() do
@@ -300,6 +367,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
       # Use RawInput for Mix mode
       RawInput.disable_raw_mode()
     end
+
     Terminal.show_cursor()
     Terminal.clear_screen()
     # Flush any remaining output

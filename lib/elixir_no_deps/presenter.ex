@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter do
   @moduledoc """
   Main entry point for the terminal presentation system.
-  
+
   Provides a simple API to run presentations from markdown files.
   """
 
@@ -12,9 +12,9 @@ defmodule ElixirNoDeps.Presenter do
 
   @doc """
   Runs a presentation from a markdown file.
-  
+
   ## Examples
-  
+
       # Run a presentation
       ElixirNoDeps.Presenter.run("slides.md")
       
@@ -27,7 +27,7 @@ defmodule ElixirNoDeps.Presenter do
       {:ok, presentation} ->
         # Apply any runtime options
         updated_presentation = apply_options(presentation, opts)
-        
+
         # Check if presentation has slides
         if ElixirNoDeps.Presenter.Presentation.slide_count(updated_presentation) == 0 do
           IO.puts("No slides found in presentation file.")
@@ -36,7 +36,7 @@ defmodule ElixirNoDeps.Presenter do
           # Start the navigation system
           run_presentation_with_error_handling(updated_presentation)
         end
-        
+
       {:error, reason} ->
         IO.puts("Failed to load presentation: #{reason}")
         {:error, reason}
@@ -50,19 +50,20 @@ defmodule ElixirNoDeps.Presenter do
   def run_presentation(presentation) do
     # Setup cleanup handler
     setup_cleanup_handler()
-    
+
     IO.puts("Starting presentation with raw keyboard input...")
     IO.puts("Press Space to advance, '?' for help, or 'q' to quit\n")
-    
+
     # Small delay to let user see the message
     Process.sleep(1000)
-    
+
     # Start the navigator
     case Navigator.run(presentation) do
       :ok ->
         Terminal.clear_screen()
         IO.puts("Presentation ended.")
         :ok
+
       :error ->
         Terminal.show_cursor()
         IO.puts("Error running presentation.")
@@ -151,13 +152,13 @@ defmodule ElixirNoDeps.Presenter do
     # Write temporary demo file
     demo_file = "/tmp/elixir_presenter_demo.md"
     File.write!(demo_file, demo_content)
-    
+
     # Run the demo
     result = run(demo_file)
-    
+
     # Cleanup
     File.rm(demo_file)
-    
+
     result
   end
 
@@ -178,7 +179,7 @@ defmodule ElixirNoDeps.Presenter do
       result = Navigator.run(presentation)
       # Ensure terminal is always restored
       RawInput.disable_raw_mode()
-      Terminal.show_cursor() 
+      Terminal.show_cursor()
       result
     rescue
       error ->
@@ -202,7 +203,7 @@ defmodule ElixirNoDeps.Presenter do
   defp setup_cleanup_handler do
     # Ensure cursor is restored on exit
     Process.flag(:trap_exit, true)
-    
+
     # Handle Ctrl+C gracefully
     :erlang.process_flag(:trap_exit, true)
   end

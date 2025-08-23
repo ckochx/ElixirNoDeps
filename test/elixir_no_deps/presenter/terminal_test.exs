@@ -67,7 +67,8 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
 
     test "handles empty text" do
       result = Terminal.center_text("", 10)
-      assert String.length(result) == 5 # Half of 10
+      # Half of 10
+      assert String.length(result) == 5
     end
   end
 
@@ -75,7 +76,7 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
     test "wraps long lines to specified width" do
       text = "This is a very long line that should be wrapped"
       result = Terminal.wrap_text(text, 20)
-      
+
       assert is_list(result)
       assert length(result) > 1
       assert Enum.all?(result, &(Terminal.visible_length(&1) <= 20))
@@ -84,7 +85,7 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
     test "preserves existing line breaks" do
       text = "Line 1\nLine 2\nLine 3"
       result = Terminal.wrap_text(text, 50)
-      
+
       assert length(result) == 3
       assert Enum.at(result, 0) == "Line 1"
       assert Enum.at(result, 1) == "Line 2"
@@ -101,7 +102,8 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
     test "calculates length excluding ANSI codes" do
       text_with_ansi = "\e[31mhello\e[0m world"
       result = Terminal.visible_length(text_with_ansi)
-      assert result == 11 # "hello world"
+      # "hello world"
+      assert result == 11
     end
 
     test "handles text without ANSI codes" do
@@ -130,7 +132,7 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
   describe "create_box/2" do
     test "creates box around single line text" do
       result = Terminal.create_box("hello")
-      
+
       assert length(result) == 3
       assert String.starts_with?(List.first(result), "┌")
       assert String.starts_with?(List.last(result), "└")
@@ -139,15 +141,16 @@ defmodule ElixirNoDeps.Presenter.TerminalTest do
 
     test "creates box around multi-line text" do
       result = Terminal.create_box("line1\nline2")
-      
-      assert length(result) == 4 # top + 2 content lines + bottom
+
+      # top + 2 content lines + bottom
+      assert length(result) == 4
       assert String.starts_with?(List.first(result), "┌")
       assert String.starts_with?(List.last(result), "└")
     end
 
     test "handles empty text" do
       result = Terminal.create_box("")
-      
+
       assert length(result) == 3
       assert String.contains?(Enum.at(result, 1), "│  │")
     end

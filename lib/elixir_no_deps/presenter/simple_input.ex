@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.SimpleInput do
   @moduledoc """
   Simplified input handler that works within Mix's constraints.
-  
+
   Since Mix redirects stdin through sockets (not TTY), traditional
   stty raw mode doesn't work. This module provides a workable
   alternative that captures input character by character when possible.
@@ -16,10 +16,14 @@ defmodule ElixirNoDeps.Presenter.SimpleInput do
     try do
       case IO.getn("", 1) do
         :eof -> :quit
-        "\n" -> :enter  # Enter key
-        "\r" -> :enter  # Return key  
-        "\x03" -> :quit # Ctrl+C
-        "\x04" -> :quit # Ctrl+D
+        # Enter key
+        "\n" -> :enter
+        # Return key  
+        "\r" -> :enter
+        # Ctrl+C
+        "\x03" -> :quit
+        # Ctrl+D
+        "\x04" -> :quit
         "\e" -> handle_escape_sequence()
         char when is_binary(char) -> char
         _ -> :unknown
@@ -36,16 +40,21 @@ defmodule ElixirNoDeps.Presenter.SimpleInput do
   def get_key_with_prompt do
     # Use :io.get_chars which works better in Mix context
     IO.write("Press any key (space=next, q=quit): ")
-    
+
     case :io.get_chars(~c"", 1) do
-      :eof -> :quit
-      [char] when is_integer(char) -> 
+      :eof ->
+        :quit
+
+      [char] when is_integer(char) ->
         # Convert the character code to string
         <<char::utf8>>
+
       char when is_list(char) and length(char) == 1 ->
         # Handle single character list
         List.to_string(char)
-      _ -> :unknown
+
+      _ ->
+        :unknown
     end
   rescue
     _ -> :quit
@@ -58,22 +67,34 @@ defmodule ElixirNoDeps.Presenter.SimpleInput do
   def get_smart_input do
     # Simple, reliable input that works in both Mix and escript
     case :io.get_line(:standard_io, ~c"") do
-      :eof -> :quit
-      {:error, _} -> :quit
+      :eof ->
+        :quit
+
+      {:error, _} ->
+        :quit
+
       data when is_list(data) ->
         input = List.to_string(data) |> String.trim()
+
         case input do
-          "" -> " "  # Just Enter = advance
-          " " -> " " # Space + Enter = advance  
+          # Just Enter = advance
+          "" -> " "
+          # Space + Enter = advance  
+          " " -> " "
           "q" -> :quit
           "Q" -> :quit
-          key -> String.at(key, 0)  # First character
+          # First character
+          key -> String.at(key, 0)
         end
+
       data when is_binary(data) ->
         input = String.trim(data)
+
         case input do
-          "" -> " "  # Just Enter = advance
-          " " -> " " # Space + Enter = advance
+          # Just Enter = advance
+          "" -> " "
+          # Space + Enter = advance
+          " " -> " "
           "q" -> :quit
           "Q" -> :quit
           key -> String.at(key, 0)
@@ -82,7 +103,6 @@ defmodule ElixirNoDeps.Presenter.SimpleInput do
   rescue
     _ -> :quit
   end
-
 
   # Private functions
 
@@ -97,7 +117,9 @@ defmodule ElixirNoDeps.Presenter.SimpleInput do
           "D" -> :arrow_left
           _ -> :unknown
         end
-      _ -> :escape
+
+      _ ->
+        :escape
     end
   rescue
     _ -> :escape

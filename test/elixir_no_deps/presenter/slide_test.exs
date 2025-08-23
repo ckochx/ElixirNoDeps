@@ -17,6 +17,7 @@ defmodule ElixirNoDeps.Presenter.SlideTest do
 
     test "creates a slide with options" do
       content = "Some content"
+
       opts = [
         slide_number: 5,
         speaker_notes: "Remember to smile",
@@ -61,7 +62,8 @@ defmodule ElixirNoDeps.Presenter.SlideTest do
       assert is_binary(id1)
       assert is_binary(id2)
       assert id1 != id2
-      assert String.length(id1) == 16 # 8 bytes * 2 hex chars
+      # 8 bytes * 2 hex chars
+      assert String.length(id1) == 16
     end
   end
 end
