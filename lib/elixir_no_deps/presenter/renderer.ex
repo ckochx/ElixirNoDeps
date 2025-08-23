@@ -9,7 +9,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   - Content centering and padding
   """
 
-  alias ElixirNoDeps.Presenter.{Presentation, Slide, Terminal}
+  alias ElixirNoDeps.Presenter.{Presentation, Slide, Terminal, AsciiProcessor}
 
   @doc """
   Renders a presentation slide to the terminal.
@@ -70,6 +70,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   @spec process_markdown_formatting(String.t()) :: String.t()
   def process_markdown_formatting(content) do
     content
+    |> AsciiProcessor.process_ascii_art()
     |> process_headers()
     |> process_emphasis()
     |> process_code_blocks()
