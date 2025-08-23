@@ -9,19 +9,15 @@ defmodule ElixirNoDeps.Presenter.Terminal do
   - Status bar rendering
   """
 
-  @doc """
-  ANSI escape codes for terminal control.
-  """
+  # ANSI escape codes for terminal control.
   @clear_screen "\e[2J"
   @move_cursor_home "\e[H"
   @hide_cursor "\e[?25l"
   @show_cursor "\e[?25h"
-  @save_cursor "\e[s"
-  @restore_cursor "\e[u"
+  # @save_cursor "\e[s"
+  # @restore_cursor "\e[u"
 
-  @doc """
-  ANSI color codes.
-  """
+  # ANSI color codes.
   @colors %{
     black: 30,
     red: 31,
@@ -41,9 +37,7 @@ defmodule ElixirNoDeps.Presenter.Terminal do
     bright_white: 97
   }
 
-  @doc """
-  ANSI formatting codes.
-  """
+  # ANSI formatting codes.
   @formats %{
     reset: 0,
     bold: 1,

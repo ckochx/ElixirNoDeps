@@ -8,7 +8,8 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   - Integration with existing AsciiImage module
   """
 
-  alias ElixirNoDeps.AsciiImage
+  # alias ElixirNoDeps.AsciiImage
+  alias ElixirNoDeps.ETSCache
 
   @doc """
   Processes a slide's content to replace ASCII art directives with actual ASCII art.
@@ -89,10 +90,10 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   def clear_cache do
     # Clear all entries starting with "ascii_art:"
     try do
-      case ElixirNoDeps.ETSCache.keys() do
+      case ETSCache.keys() do
         {:ok, keys} ->
           ascii_keys = Enum.filter(keys, &String.starts_with?(&1, "ascii_art:"))
-          Enum.each(ascii_keys, &ElixirNoDeps.ETSCache.delete/1)
+          Enum.each(ascii_keys, &ETSCache.delete/1)
         :error ->
           :ok
       end
@@ -106,7 +107,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
 
   defp get_cached_ascii(cache_key) do
     try do
-      case ElixirNoDeps.ETSCache.get(cache_key) do
+      case ETSCache.get(cache_key) do
         {:ok, value} -> {:ok, value}
         :error -> :error
       end
@@ -118,7 +119,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   defp cache_ascii_art(cache_key, ascii_art) do
     try do
       # Cache for 1 hour (3600 seconds)
-      ElixirNoDeps.ETSCache.put(cache_key, ascii_art, ttl: 3600)
+      ETSCache.put(cache_key, ascii_art, ttl: 3600)
     rescue
       _ -> :ok # Gracefully handle cache failures
     end
@@ -164,27 +165,27 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
     """
   end
 
-  # Alternative simpler implementation that works with the current AsciiImage module
-  # This version captures stdout using a different approach
-  defp capture_ascii_output_simple(image_path) do
-    try do
-      # Use ExUnit.CaptureIO if available, otherwise implement basic capture
-      if Code.ensure_loaded?(ExUnit.CaptureIO) do
-        ExUnit.CaptureIO.capture_io(fn ->
-          AsciiImage.asciify(image_path)
-        end)
-      else
-        # Fallback: create ASCII matrix directly without printing
-        ascii_matrix = get_ascii_matrix(image_path)
-        ascii_matrix
-        |> Enum.map(&Enum.join/1)
-        |> Enum.join("\n")
-      end
-    rescue
-      error ->
-        create_error_placeholder(image_path, inspect(error))
-    end
-  end
+  # # Alternative simpler implementation that works with the current AsciiImage module
+  # # This version captures stdout using a different approach
+  # defp capture_ascii_output_simple(image_path) do
+  #   try do
+  #     # Use ExUnit.CaptureIO if available, otherwise implement basic capture
+  #     if Code.ensure_loaded?(ExUnit.CaptureIO) do
+  #       ExUnit.CaptureIO.capture_io(fn ->
+  #         AsciiImage.asciify(image_path)
+  #       end)
+  #     else
+  #       # Fallback: create ASCII matrix directly without printing
+  #       ascii_matrix = get_ascii_matrix(image_path)
+  #       ascii_matrix
+  #       |> Enum.map(&Enum.join/1)
+  #       |> Enum.join("\n")
+  #     end
+  #   rescue
+  #     error ->
+  #       create_error_placeholder(image_path, inspect(error))
+  #   end
+  # end
 
   # Direct access to the ASCII matrix without printing
   defp get_ascii_matrix(image_path) do
