@@ -12,25 +12,19 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   """
   @spec get_raw_char() :: String.t() | :error
   def get_raw_char do
-    case enable_raw_mode() do
-      :ok ->
-        try do
-          # Read a single character
-          char = IO.getn("", 1)
-          disable_raw_mode()
-          char
-        rescue
-          _error ->
-            disable_raw_mode()
-            :error
-        catch
-          _type, _value ->
-            disable_raw_mode()
-            :error
-        end
-      :error ->
-        # Fallback to regular input if raw mode fails
-        IO.getn("", 1)
+    # Don't repeatedly enable/disable raw mode - assume it's already enabled
+    try do
+      # Read a single character - in raw mode this doesn't wait for Enter
+      case IO.getn("", 1) do
+        :eof -> :error
+        char -> char
+      end
+    rescue
+      _error ->
+        :error
+    catch
+      _type, _value ->
+        :error
     end
   end
 
@@ -58,6 +52,9 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       # Regular character
       char when is_binary(char) -> char
       
+      # Handle end of file
+      :eof -> :error
+      
       # Error case
       :error -> :error
     end
@@ -68,9 +65,17 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   """
   @spec enable_raw_mode() :: :ok | :error
   def enable_raw_mode do
-    case System.cmd("stty", ["raw", "-echo"], stderr_to_stdout: true) do
-      {_output, 0} -> :ok
-      {_error, _code} -> :error
+    # First check if we're in a proper terminal
+    case System.cmd("tty", [], stderr_to_stdout: true) do
+      {_output, 0} ->
+        # We're in a terminal, try to enable raw mode
+        case System.cmd("stty", ["-icanon", "-echo", "min", "1", "time", "0"], stderr_to_stdout: true) do
+          {_output, 0} -> :ok
+          {_error, _code} -> :error
+        end
+      {_error, _code} ->
+        # Not in a terminal
+        :error
     end
   rescue
     _error -> :error
@@ -81,7 +86,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   """
   @spec disable_raw_mode() :: :ok | :error
   def disable_raw_mode do
-    case System.cmd("stty", ["cooked", "echo"], stderr_to_stdout: true) do
+    case System.cmd("stty", ["icanon", "echo"], stderr_to_stdout: true) do
       {_output, 0} -> :ok
       {_error, _code} -> :error
     end

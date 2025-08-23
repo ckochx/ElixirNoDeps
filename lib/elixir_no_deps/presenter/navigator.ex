@@ -98,10 +98,23 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     :ok
   end
 
+  # Handle process crash/exit gracefully
+  @impl true
+  def handle_info({:EXIT, _pid, _reason}, presentation) do
+    restore_terminal()
+    {:noreply, presentation}
+  end
+
+  @impl true
+  def handle_info(_msg, presentation) do
+    {:noreply, presentation}
+  end
+
   # Private functions
 
   defp navigation_loop do
-    case get_raw_key_input() do
+    # Try raw input first, fallback to regular input if raw mode failed
+    case get_input() do
       :quit ->
         :ok
       command ->
@@ -116,8 +129,20 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
-  defp get_raw_key_input do
+  # Smart input method - tries raw input, falls back to regular input
+  defp get_input do
     case RawInput.get_raw_key() do
+      :error -> 
+        # Fallback to regular input method
+        get_key_input()
+      command ->
+        # Raw input worked, process the command
+        process_raw_command(command)
+    end
+  end
+
+  defp process_raw_command(command) do
+    case command do
       # Quit commands
       "q" -> :quit
       "Q" -> :quit
@@ -169,6 +194,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
+
   # Legacy method kept for compatibility
   defp get_key_input do
     case IO.getn("", 1) do
@@ -185,8 +211,8 @@ defmodule ElixirNoDeps.Presenter.Navigator do
       "r" -> :refresh
       "?" -> :help
       "\e" -> 
-        # Handle escape sequences (arrow keys)
-        handle_escape_sequence()
+        # Handle escape sequences (arrow keys) - simplified fallback
+        :unknown
       key ->
         # Handle numeric input for slide jumping
         case Integer.parse(key) do
@@ -196,21 +222,6 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
-  defp handle_escape_sequence do
-    # Read the next character to determine arrow key
-    case IO.getn("", 1) do
-      "[" ->
-        case IO.getn("", 1) do
-          "C" -> :next_slide  # Right arrow
-          "D" -> :prev_slide  # Left arrow
-          "A" -> :prev_slide  # Up arrow  
-          "B" -> :next_slide  # Down arrow
-          _ -> :unknown
-        end
-      _ ->
-        :unknown
-    end
-  end
 
   defp process_navigation_command(command, presentation) do
     case command do
@@ -299,14 +310,21 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     # Hide cursor for presentation mode
     Terminal.hide_cursor()
     
-    # Enable raw mode for single-key input
-    RawInput.enable_raw_mode()
+    # Try to enable raw mode for single-key input
+    case RawInput.enable_raw_mode() do
+      :ok -> 
+        IO.puts("Raw input enabled - no Enter key required!")
+      :error -> 
+        IO.puts("Raw input not available - press Enter after each key.")
+    end
   end
 
   defp restore_terminal do
-    # Restore normal terminal mode
+    # Restore normal terminal mode first
     RawInput.disable_raw_mode()
     Terminal.show_cursor()
     Terminal.clear_screen()
+    # Flush any remaining output
+    IO.puts("")
   end
 end
