@@ -9,6 +9,7 @@ defmodule ElixirNoDeps.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
+      escript: escript(),
       # no deps
       # deps: deps()
     ]
@@ -19,6 +20,13 @@ defmodule ElixirNoDeps.MixProject do
     [
       extra_applications: [:logger, :ssh, :inets, :ssl],
       mod: {ElixirNoDeps.Application, []}
+    ]
+  end
+
+  defp escript do
+    [
+      main_module: ElixirNoDeps.Presenter.CLI,
+      name: "present"
     ]
   end
 end

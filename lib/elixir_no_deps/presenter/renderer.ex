@@ -9,7 +9,10 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   - Content centering and padding
   """
 
-  alias ElixirNoDeps.Presenter.{Presentation, Slide, Terminal, AsciiProcessor}
+  alias ElixirNoDeps.Presenter.AsciiProcessor
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.Slide
+  alias ElixirNoDeps.Presenter.Terminal
 
   @doc """
   Renders a presentation slide to the terminal.

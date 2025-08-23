@@ -11,7 +11,11 @@ defmodule ElixirNoDeps.Presenter.Navigator do
 
   use GenServer
 
-  alias ElixirNoDeps.Presenter.{Presentation, Renderer, Terminal, RawInput}
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.RawInput
+  alias ElixirNoDeps.Presenter.Renderer
+  alias ElixirNoDeps.Presenter.SimpleInput
+  alias ElixirNoDeps.Presenter.Terminal
 
   @doc """
   Starts the navigator GenServer.
@@ -129,25 +133,20 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
-  # Smart input method - tries raw input, falls back to regular input
+  # Smart input method - tries raw input, falls back to simple input
   defp get_input do
-    case RawInput.get_raw_key() do
-      :error -> 
-        # Fallback to regular input method
-        get_key_input()
-      command ->
-        # Raw input worked, process the command
-        process_raw_command(command)
-    end
+    # Always use SimpleInput - it works reliably
+    get_simple_input()
   end
 
-  defp process_raw_command(command) do
-    case command do
+
+  # Simplified input method that works in Mix context
+  defp get_simple_input do
+    case SimpleInput.get_smart_input() do
       # Quit commands
       "q" -> :quit
       "Q" -> :quit
-      :ctrl_c -> :quit
-      :ctrl_d -> :quit
+      :quit -> :quit
       
       # Next slide commands
       " " -> :next_slide          # Spacebar (primary)
@@ -163,19 +162,17 @@ defmodule ElixirNoDeps.Presenter.Navigator do
       "h" -> :prev_slide          # vim left
       :arrow_left -> :prev_slide   # Left arrow
       :arrow_up -> :prev_slide     # Up arrow
-      :backspace -> :prev_slide    # Backspace
+      "\x7F" -> :prev_slide       # Backspace
+      "\x08" -> :prev_slide       # Alt backspace
       
       # Navigation shortcuts
       "0" -> :first_slide         # Go to first slide
       "$" -> :last_slide          # Go to last slide
-      :home -> :first_slide       # Home key
-      :end -> :last_slide         # End key
       
       # Utility commands
       "r" -> :refresh             # Refresh/redraw
       "?" -> :help                # Show help
       "/" -> :help                # Alternative help
-      :f1 -> :help                # F1 for help
       
       # Handle numeric input for direct slide jumping
       key when is_binary(key) ->
@@ -184,44 +181,10 @@ defmodule ElixirNoDeps.Presenter.Navigator do
           _ -> :unknown
         end
       
-      # Handle special keys
-      {:alt, key} -> {:alt_key, key}
-      {:function, key} -> {:function_key, key}
-      {:sequence, seq} -> {:sequence, seq}
-      
       # Unknown/unsupported keys
       _ -> :unknown
     end
   end
-
-
-  # Legacy method kept for compatibility
-  defp get_key_input do
-    case IO.getn("", 1) do
-      "q" -> :quit
-      "Q" -> :quit
-      " " -> :next_slide
-      "n" -> :next_slide
-      "j" -> :next_slide
-      "p" -> :prev_slide
-      "k" -> :prev_slide
-      "h" -> :prev_slide
-      "0" -> :first_slide
-      "$" -> :last_slide
-      "r" -> :refresh
-      "?" -> :help
-      "\e" -> 
-        # Handle escape sequences (arrow keys) - simplified fallback
-        :unknown
-      key ->
-        # Handle numeric input for slide jumping
-        case Integer.parse(key) do
-          {num, ""} when num > 0 -> {:goto_slide, num - 1}
-          _ -> :unknown
-        end
-    end
-  end
-
 
   defp process_navigation_command(command, presentation) do
     case command do
@@ -310,18 +273,33 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     # Hide cursor for presentation mode
     Terminal.hide_cursor()
     
-    # Try to enable raw mode for single-key input
-    case RawInput.enable_raw_mode() do
-      :ok -> 
-        IO.puts("Raw input enabled - no Enter key required!")
-      :error -> 
-        IO.puts("Raw input not available - press Enter after each key.")
+    if running_as_escript?() do
+      IO.puts("🎯 Escript mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
+      IO.puts("   Type 'q' + ENTER to quit. Arrow keys not available.")
+    else
+      IO.puts("🎯 Mix mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
+      IO.puts("   Type 'q' + ENTER to quit. For better experience: mix escript.build && ./present file.md")
     end
   end
 
+
+  defp running_as_escript? do
+    case :escript.script_name() do
+      :undefined -> false
+      _name -> true
+    end
+  rescue
+    _ -> false
+  end
+
   defp restore_terminal do
-    # Restore normal terminal mode first
-    RawInput.disable_raw_mode()
+    if running_as_escript?() do
+      # Restore terminal directly for escript
+      System.cmd("stty", ["cooked", "echo"], stderr_to_stdout: true)
+    else
+      # Use RawInput for Mix mode
+      RawInput.disable_raw_mode()
+    end
     Terminal.show_cursor()
     Terminal.clear_screen()
     # Flush any remaining output

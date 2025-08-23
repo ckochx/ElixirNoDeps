@@ -65,20 +65,27 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   """
   @spec enable_raw_mode() :: :ok | :error
   def enable_raw_mode do
-    # First check if we're in a proper terminal
-    case System.cmd("tty", [], stderr_to_stdout: true) do
-      {_output, 0} ->
-        # We're in a terminal, try to enable raw mode
-        case System.cmd("stty", ["-icanon", "-echo", "min", "1", "time", "0"], stderr_to_stdout: true) do
-          {_output, 0} -> :ok
-          {_error, _code} -> :error
-        end
-      {_error, _code} ->
-        # Not in a terminal
-        :error
+    # Try a more targeted approach - focus on what we need
+    try do
+      # First try the minimal stty command needed
+      case System.cmd("stty", ["raw", "-echo"], stderr_to_stdout: true) do
+        {_output, 0} -> 
+          :ok
+        {error, _code} ->
+          # If raw mode fails, try -icanon instead
+          case System.cmd("stty", ["-icanon", "-echo"], stderr_to_stdout: true) do
+            {_output, 0} -> :ok
+            {_error, _code} -> 
+              if String.contains?(error, "not a tty") or String.contains?(error, "inappropriate ioctl") do
+                :not_a_tty
+              else
+                :error
+              end
+          end
+      end
+    rescue
+      _error -> :error
     end
-  rescue
-    _error -> :error
   end
 
   @doc """
@@ -86,12 +93,25 @@ defmodule ElixirNoDeps.Presenter.RawInput do
   """
   @spec disable_raw_mode() :: :ok | :error
   def disable_raw_mode do
-    case System.cmd("stty", ["icanon", "echo"], stderr_to_stdout: true) do
-      {_output, 0} -> :ok
-      {_error, _code} -> :error
+    try do
+      # Try to restore with cooked mode first
+      case System.cmd("stty", ["cooked", "echo"], stderr_to_stdout: true) do
+        {_output, 0} -> :ok
+        {_error, _code} ->
+          # If cooked fails, try icanon
+          case System.cmd("stty", ["icanon", "echo"], stderr_to_stdout: true) do
+            {_output, 0} -> :ok
+            {error, _code} -> 
+              if String.contains?(error, "not a tty") or String.contains?(error, "inappropriate ioctl") do
+                :not_a_tty
+              else
+                :error
+              end
+          end
+      end
+    rescue
+      _error -> :error
     end
-  rescue
-    _error -> :error
   end
 
   @doc """
