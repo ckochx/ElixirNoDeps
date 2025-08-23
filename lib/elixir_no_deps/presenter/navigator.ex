@@ -11,7 +11,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
 
   use GenServer
 
-  alias ElixirNoDeps.Presenter.{Presentation, Renderer, Terminal}
+  alias ElixirNoDeps.Presenter.{Presentation, Renderer, Terminal, RawInput}
 
   @doc """
   Starts the navigator GenServer.
@@ -101,7 +101,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   # Private functions
 
   defp navigation_loop do
-    case get_key_input() do
+    case get_raw_key_input() do
       :quit ->
         :ok
       command ->
@@ -116,6 +116,60 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
+  defp get_raw_key_input do
+    case RawInput.get_raw_key() do
+      # Quit commands
+      "q" -> :quit
+      "Q" -> :quit
+      :ctrl_c -> :quit
+      :ctrl_d -> :quit
+      
+      # Next slide commands
+      " " -> :next_slide          # Spacebar (primary)
+      "n" -> :next_slide          # n key
+      "j" -> :next_slide          # vim down
+      :arrow_right -> :next_slide  # Right arrow
+      :arrow_down -> :next_slide   # Down arrow
+      :enter -> :next_slide        # Enter key
+      
+      # Previous slide commands  
+      "p" -> :prev_slide          # p key
+      "k" -> :prev_slide          # vim up
+      "h" -> :prev_slide          # vim left
+      :arrow_left -> :prev_slide   # Left arrow
+      :arrow_up -> :prev_slide     # Up arrow
+      :backspace -> :prev_slide    # Backspace
+      
+      # Navigation shortcuts
+      "0" -> :first_slide         # Go to first slide
+      "$" -> :last_slide          # Go to last slide
+      :home -> :first_slide       # Home key
+      :end -> :last_slide         # End key
+      
+      # Utility commands
+      "r" -> :refresh             # Refresh/redraw
+      "?" -> :help                # Show help
+      "/" -> :help                # Alternative help
+      :f1 -> :help                # F1 for help
+      
+      # Handle numeric input for direct slide jumping
+      key when is_binary(key) ->
+        case Integer.parse(key) do
+          {num, ""} when num > 0 -> {:goto_slide, num - 1}
+          _ -> :unknown
+        end
+      
+      # Handle special keys
+      {:alt, key} -> {:alt_key, key}
+      {:function, key} -> {:function_key, key}
+      {:sequence, seq} -> {:sequence, seq}
+      
+      # Unknown/unsupported keys
+      _ -> :unknown
+    end
+  end
+
+  # Legacy method kept for compatibility
   defp get_key_input do
     case IO.getn("", 1) do
       "q" -> :quit
@@ -210,16 +264,19 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     #{Terminal.style_text("PRESENTATION NAVIGATION HELP", :bright_cyan, :bold)}
     
     #{Terminal.style_text("Navigation:", :bright_yellow, :bold)}
-    Space, →, n, j    Next slide
-    ←, p, k, h        Previous slide
-    0                 First slide
-    $                 Last slide
-    1-9               Jump to slide number
+    Space, →, ↓, n, j, Enter    Next slide
+    ←, ↑, p, k, h, Backspace   Previous slide
+    0, Home                    First slide
+    $, End                     Last slide
+    1-9                        Jump to slide number
     
     #{Terminal.style_text("Actions:", :bright_yellow, :bold)}
     r                 Refresh/redraw
-    ?                 Show this help
-    q, Q              Quit presentation
+    ?, /, F1          Show this help
+    q, Q, Ctrl+C, Ctrl+D    Quit presentation
+    
+    #{Terminal.style_text("✨ Raw keyboard input enabled!", :bright_magenta, nil)}
+    #{Terminal.style_text("No need to press Enter - just press any key!", :bright_green, nil)}
     
     #{Terminal.style_text("Press any key to continue...", :bright_green, nil)}
     """
@@ -235,19 +292,20 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end)
     
     # Wait for any key
-    IO.getn("", 1)
+    RawInput.get_raw_key()
   end
 
   defp configure_terminal do
     # Hide cursor for presentation mode
     Terminal.hide_cursor()
     
-    # Note: In a more complete implementation, we would set the terminal
-    # to raw mode to capture individual keystrokes without waiting for Enter.
-    # For now, we rely on IO.getn/2 which works reasonably well.
+    # Enable raw mode for single-key input
+    RawInput.enable_raw_mode()
   end
 
   defp restore_terminal do
+    # Restore normal terminal mode
+    RawInput.disable_raw_mode()
     Terminal.show_cursor()
     Terminal.clear_screen()
   end
