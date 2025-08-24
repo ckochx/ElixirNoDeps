@@ -9,7 +9,8 @@ defmodule ElixirNoDeps.Presenter.Parser do
   - Speaker notes in HTML comments
   """
 
-  alias ElixirNoDeps.Presenter.{Presentation, Slide}
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.Slide
 
   @doc """
   Parses a markdown file into a Presentation struct.
@@ -84,19 +85,31 @@ defmodule ElixirNoDeps.Presenter.Parser do
   """
   @spec parse_slides(String.t()) :: [Slide.t()]
   def parse_slides(content) do
-    content
-    |> String.split(~r/\n\s*---\s*\n/)
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.with_index(1)
-    |> Enum.map(fn {slide_content, index} ->
-      {clean_content, speaker_notes} = extract_speaker_notes(slide_content)
+    # Slides are separated by `---` delimiters
+    # If there are no `---` delimiters in the content, there are no slides
+    slides = 
+      content
+      |> String.split(~r/\n\s*---\s*\n/)
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
 
-      Slide.new(clean_content,
-        slide_number: index,
-        speaker_notes: speaker_notes
-      )
-    end)
+    # If we only got one part and no slide delimiters were found, treat it as no slides
+    if length(slides) == 1 and not String.contains?(content, "---") do
+      # No slide delimiters found - this is likely just metadata or description text
+      []
+    else
+      # Found slide delimiters, process normally
+      slides
+      |> Enum.with_index(1)
+      |> Enum.map(fn {slide_content, index} ->
+        {clean_content, speaker_notes} = extract_speaker_notes(slide_content)
+
+        Slide.new(clean_content,
+          slide_number: index,
+          speaker_notes: speaker_notes
+        )
+      end)
+    end
   end
 
   @doc """

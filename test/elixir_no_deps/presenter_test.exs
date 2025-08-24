@@ -2,7 +2,8 @@ defmodule ElixirNoDeps.PresenterTest do
   use ExUnit.Case, async: false
 
   alias ElixirNoDeps.Presenter
-  alias ElixirNoDeps.Presenter.{Presentation, Slide}
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.Slide
 
   describe "run/2" do
     setup do
@@ -90,6 +91,12 @@ defmodule ElixirNoDeps.PresenterTest do
       # Welcome! 🎉
 
       This is a **demo presentation** built with Elixir.
+
+      ---
+
+      # Second Slide
+
+      More content here.
       """
 
       presentation = ElixirNoDeps.Presenter.Parser.parse_content(demo_content)
