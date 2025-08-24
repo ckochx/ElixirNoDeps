@@ -32,11 +32,11 @@ defmodule ElixirNoDeps.Presenter.Input do
 
       data when is_list(data) ->
         input = List.to_string(data) |> String.trim()
-        parse_input(input)
+        parse_line_input(input)
 
       data when is_binary(data) ->
         input = String.trim(data)
-        parse_input(input)
+        parse_line_input(input)
     end
   rescue
     _ -> :quit
@@ -164,13 +164,19 @@ defmodule ElixirNoDeps.Presenter.Input do
 
   # Private functions
 
-  defp parse_input(input) do
+  # Parse line-based input (from Mix context where we get full lines)
+  defp parse_line_input(input) do
     case input do
-      "" -> " "  # Enter = advance
-      " " -> " "  # Space = advance
+      # Just Enter = advance
+      "" -> " "
+      # Space + Enter = advance
+      " " -> " "
       "q" -> :quit
       "Q" -> :quit
-      key -> String.at(key, 0)  # First character
+      "?" -> "?"
+      "/" -> "/"
+      # First character of input
+      key -> String.at(key, 0)
     end
   end
 
@@ -179,18 +185,41 @@ defmodule ElixirNoDeps.Presenter.Input do
       "\e" ->
         handle_escape_sequence()
 
-      "\x03" -> :ctrl_c  # Ctrl+C
-      "\x04" -> :ctrl_d  # Ctrl+D
-      "\x1A" -> :ctrl_z  # Ctrl+Z
-      "\r" -> :enter
-      "\n" -> :enter
-      "\t" -> :tab
-      "\x7F" -> :backspace
-      "\x08" -> :backspace
+      # Ctrl+C
+      "\x03" ->
+        :ctrl_c
 
-      char when is_binary(char) -> char
-      :eof -> :quit
-      :error -> :error
+      # Ctrl+D
+      "\x04" ->
+        :ctrl_d
+
+      # Ctrl+Z
+      "\x1A" ->
+        :ctrl_z
+
+      "\r" ->
+        :enter
+
+      "\n" ->
+        :enter
+
+      "\t" ->
+        :tab
+
+      "\x7F" ->
+        :backspace
+
+      "\x08" ->
+        :backspace
+
+      char when is_binary(char) ->
+        char
+
+      :eof ->
+        :quit
+
+      :error ->
+        :error
     end
   end
 
