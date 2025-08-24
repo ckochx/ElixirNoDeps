@@ -44,7 +44,7 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       "\x03" ->
         :ctrl_c
 
-      # Ctrl+D  
+      # Ctrl+D
       "\x04" ->
         :ctrl_d
 
@@ -245,10 +245,10 @@ defmodule ElixirNoDeps.Presenter.RawInput do
         :end
 
       "2" ->
-        read_extended_key("~", :insert)
+        handle_two_sequence()
 
       "3" ->
-        read_extended_key("~", :delete)
+        handle_three_sequence()
 
       "5" ->
         read_extended_key("~", :page_up)
@@ -256,15 +256,9 @@ defmodule ElixirNoDeps.Presenter.RawInput do
       "6" ->
         read_extended_key("~", :page_down)
 
-      # Function keys F1-F12
+      # Function keys F1-F4 via CSI [1x~ (others handled in 2-seq mapping)
       "1" ->
         handle_f1_to_f4()
-
-      "2" ->
-        handle_f5_to_f8()
-
-      "3" ->
-        handle_f9_to_f12()
 
       # Extended sequences that end with letters
       char when is_binary(char) and byte_size(char) == 1 ->
@@ -312,8 +306,11 @@ defmodule ElixirNoDeps.Presenter.RawInput do
     end
   end
 
-  defp handle_f5_to_f8 do
+  # Some terminals encode F-keys using CSI [2x~ and [3x~ patterns
+  # Disambiguate between Insert/Delete (immediate ~) and function keys (digit then ~)
+  defp handle_two_sequence do
     case get_raw_char() do
+      "~" -> :insert
       "0" -> read_extended_key("~", :f9)
       "1" -> read_extended_key("~", :f10)
       "3" -> read_extended_key("~", :f11)
@@ -322,9 +319,11 @@ defmodule ElixirNoDeps.Presenter.RawInput do
     end
   end
 
-  defp handle_f9_to_f12 do
-    # These are handled in handle_f5_to_f8 for most terminals
-    :unknown
+  defp handle_three_sequence do
+    case get_raw_char() do
+      "~" -> :delete
+      _ -> :unknown
+    end
   end
 
   defp read_multi_char_sequence(first_char) do
