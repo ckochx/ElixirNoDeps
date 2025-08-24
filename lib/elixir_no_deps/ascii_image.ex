@@ -27,8 +27,8 @@ defmodule ElixirNoDeps.AsciiImage do
     {raw_pixel_data, 0} = System.cmd("magick", [img_path, "-resize", "250", "sparse-color:"])
 
     raw_pixel_data
-    |> String.split
-    |> Enum.map(&(String.split(&1, ",", parts: 3)))
+    |> String.split()
+    |> Enum.map(&String.split(&1, ",", parts: 3))
     |> Enum.reduce([], &pixels_to_rows/2)
     |> Enum.map(&row_rgb_values/1)
     |> Enum.map(&row_brightness_values/1)
@@ -36,13 +36,14 @@ defmodule ElixirNoDeps.AsciiImage do
   end
 
   defp pixels_to_rows(pixel, acc) do
-    row = pixel |> Enum.at(1) |> String.to_integer
+    row = pixel |> Enum.at(1) |> String.to_integer()
 
-    acc = if Enum.at(acc, row) == nil do
-      acc ++ [[]]
-    else
-      acc
-    end
+    acc =
+      if Enum.at(acc, row) == nil do
+        acc ++ [[]]
+      else
+        acc
+      end
 
     acc |> List.replace_at(row, Enum.at(acc, row) ++ [pixel])
   end
@@ -62,14 +63,15 @@ defmodule ElixirNoDeps.AsciiImage do
 
   defp parse_percentage_to_rgb(percentage_str) do
     cleaned = String.replace(percentage_str, "%", "")
-    
+
     # Handle both integer and float strings
-    value = if String.contains?(cleaned, ".") do
-      String.to_float(cleaned)
-    else
-      String.to_integer(cleaned) |> Kernel./(1.0)
-    end
-    
+    value =
+      if String.contains?(cleaned, ".") do
+        String.to_float(cleaned)
+      else
+        String.to_integer(cleaned) |> Kernel./(1.0)
+      end
+
     (value * 255 / 100) |> round()
   end
 
@@ -87,6 +89,6 @@ defmodule ElixirNoDeps.AsciiImage do
     fraction = value / 255
     character_index = round(65 * fraction) - 1
     character = String.slice(@ascii_list, character_index, 1)
-    Enum.join [character, character, character]
+    Enum.join([character, character, character])
   end
 end

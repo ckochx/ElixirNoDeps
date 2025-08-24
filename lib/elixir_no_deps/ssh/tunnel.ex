@@ -23,7 +23,9 @@ defmodule ElixirNoDeps.SSH.Tunnel do
 
   def start(user) do
     remote_host = config(:hostname)
-    ssh_key = config(:ssh_key) || File.read!(Path.join([System.user_home(), ".ssh", "id_ed25519"]))
+
+    ssh_key =
+      config(:ssh_key) || File.read!(Path.join([System.user_home(), ".ssh", "id_ed25519"]))
 
     case :ssh.connect(String.to_charlist(remote_host), 22,
            auth_methods: ~c"publickey",

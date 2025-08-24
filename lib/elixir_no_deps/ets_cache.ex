@@ -22,7 +22,6 @@ defmodule ElixirNoDeps.ETSCache do
     ])
   end
 
-
   def get(key) do
     entry = :ets.lookup(:ets_cache0, key)
 

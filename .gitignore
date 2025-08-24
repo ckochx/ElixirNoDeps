@@ -21,3 +21,9 @@ elixir_no_deps-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# ignore present binary
+present
+
+# ignore claude settings
+.claude/
