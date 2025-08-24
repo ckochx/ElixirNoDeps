@@ -1,37 +1,94 @@
 # ElixirNoDeps
 
-**TODO: Add description**
+Terminal-based presentation tool and utilities with zero external Mix deps.
 
-## Installation
+- Present markdown files in your terminal
+- Keyboard navigation (space/enter to advance, arrows, vim keys)
+- Optional inline image rendering (sixel) when available
+- Includes a simple ASCII art generator for images
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `elixir_no_deps` to your list of dependencies in `mix.exs`:
+## Prerequisites
 
-```elixir
-def deps do
-  [
-    {:elixir_no_deps, "~> 0.1.0"}
-  ]
-end
+- Elixir/Erlang toolchain. If you use `asdf`, this repo includes a `.tool-versions` file.
+  - From the project root: `asdf install`
+
+## Local setup
+
+```bash
+# From project root
+asdf install           # if you use asdf (recommended)
+mix escript.build      # builds the `present` executable
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/elixir_no_deps>.
+## Usage
 
-### What do we want to do with the Rasp Pi? 
+### Present a markdown file
 
-SSH to a pi.
-connect to a pi
-run the slide deck from the pi 
-step through the commits in the repo and demonstrate the capabilities at each point in time
+- With Mix (works everywhere):
 
-Capabilities: 
+```bash
+mix present path/to/slides.md
+```
 
-can we build the presentation in elixir? 
+- With escript (generates `present` in project root):
 
-ASCII art slides? 
+```bash
+./present path/to/slides.md
+```
 
-Courtesy of: https://github.com/papa-whisky & git@github.com:papa-whisky/elixir_ascii_image.git
-`mix acsiify file_path`
+### Navigation
 
+- Next slide: Space, Enter, →, ↓, `n`, `j`
+- Previous slide: ←, ↑, `p`, `k`, `h`, Backspace
+- First/Last: `0` (Home), `$` (End)
+- Jump: `1-9`
+- Other: `r` = refresh, `?` or `/` = help, `q` = quit
+
+Note: Depending on your terminal environment, arrow keys may require running the escript directly for best results.
+
+### ASCII image utility
+
+Generate ASCII art from an image:
+
+```bash
+mix asciify path/to/image.png
+```
+
+## Optional image rendering (sixel)
+
+Inline images in the terminal are supported via sixel when both ImageMagick and a sixel-compatible terminal are available:
+
+### Requirements
+
+- **ImageMagick**: Install with `brew install imagemagick`
+- **Sixel-compatible terminal**: Standard terminals like Terminal.app don't support sixel
+
+### Sixel-Compatible Terminals
+
+- **iTerm2** (recommended for macOS):
+  ```bash
+  brew install --cask iterm2
+  ```
+
+### Fallback Behavior
+
+If sixel is not available, images will be rendered as ASCII art (which may appear as compressed text). The presentation will still run normally.
+
+## Development
+
+Run tests:
+
+```bash
+mix test
+```
+
+Some tests depend on ImageMagick. To skip them:
+
+```bash
+mix test --exclude requires_imagemagick
+```
+
+## Credits
+
+- Inspired by the idea of building useful tools with no external Mix dependencies
+- Courtesy of: https://github.com/papa-whisky and https://github.com/papa-whisky/elixir_ascii_image
