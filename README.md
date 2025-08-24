@@ -7,6 +7,54 @@ Terminal-based presentation tool and utilities with zero external Mix deps.
 - Optional inline image rendering (sixel) when available
 - Includes a simple ASCII art generator for images
 
+## Express Setup for Mac
+
+Complete setup from scratch (no Elixir required):
+
+```bash
+# 1. Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 2. Install asdf version manager
+brew install asdf
+
+# 3. Add asdf to your shell (choose your shell)
+# For bash:
+echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ~/.bash_profile
+# For zsh:
+echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ~/.zshrc
+
+# 4. Restart your terminal or source your profile
+source ~/.bash_profile  # or ~/.zshrc
+
+# 5. Install Elixir and Erlang plugins
+asdf plugin add erlang
+asdf plugin add elixir
+
+# 6. Clone this repository
+git clone https://github.com/ckochx/ElixirNoDeps.git
+cd ElixirNoDeps
+
+# 7. Install the exact versions specified in .tool-versions
+asdf install
+
+# 8. Build the presentation tool
+mix escript.build
+
+# 9. Try it out!
+./present sample_presentation.md
+```
+
+**Optional: Enhanced experience with images**
+```bash
+# Install ImageMagick for ASCII art generation
+brew install imagemagick
+
+# Install iTerm2 for sixel image support
+brew install --cask iterm2
+# Then in iTerm2: Preferences → Profiles → Terminal → Enable "Sixel scrolling"
+```
+
 ## Prerequisites
 
 - Elixir/Erlang toolchain. If you use `asdf`, this repo includes a `.tool-versions` file.
