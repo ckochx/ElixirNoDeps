@@ -65,8 +65,8 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   def render_content(content, width, available_height) do
     content
     |> process_markdown_formatting()
-    # Leave padding on sides
-    |> Terminal.wrap_text(width - 4)
+    # Leave more padding on sides for better text-image layout
+    |> Terminal.wrap_text(width - 8)
     # Leave space for status bar and padding
     |> Enum.take(available_height - 3)
   end
@@ -99,19 +99,15 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     # Reserve space for status bar
     available_height = height - 2
 
-    # Process and render slide content
-    content_lines = render_content(slide.content, width, available_height)
+    # Extract images and text content separately
+    {text_content, images} = extract_images_and_text(slide.content)
 
-    # Calculate vertical centering
-    content_height = length(content_lines)
-    vertical_padding = max(0, div(available_height - content_height, 2))
-
-    # Render content lines
-    Enum.with_index(content_lines, vertical_padding + 1)
-    |> Enum.each(fn {line, row} ->
-      centered_line = Terminal.center_text(line, width)
-      Terminal.print_at(row, 1, centered_line)
-    end)
+    # Render content with side-by-side layout if images exist
+    if Enum.empty?(images) do
+      render_text_only_content(text_content, width, available_height)
+    else
+      render_side_by_side_content(text_content, images, width, available_height)
+    end
 
     # Render status bar
     render_status_bar(presentation, width, height)
@@ -209,41 +205,128 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   end
 
   defp process_images(content) do
-    # Process standard markdown images ![alt](path)
-    # Skip images that already have special alt text (ascii, small, large, thumbnail)
+    # Images are now handled separately in side-by-side layout
+    # This function only returns content unchanged since ASCII processing 
+    # is handled by AsciiProcessor.process_ascii_art in process_markdown_formatting
     content
-    |> String.replace(~r/!\[(?!(?:ascii|small|large|thumbnail)\])[^\]]*\]\(([^)]+)\)/, fn match ->
-      # Extract image path from the match
-      [_, image_path] = Regex.run(~r/!\[[^\]]*\]\(([^)]+)\)/, match)
-
-      case ImageRenderer.render_image(image_path) do
-        {:ok, rendered} -> rendered
-        {:error, reason} -> render_image_error(image_path, reason)
-      end
-    end)
-    # Process mode-specific images ![mode](path)
-    |> String.replace(~r/!\[(small|large|thumbnail)\]\(([^)]+)\)/, fn match ->
-      [_, mode, image_path] = Regex.run(~r/!\[([^\]]+)\]\(([^)]+)\)/, match)
-
-      opts = image_mode_options(mode)
-
-      case ImageRenderer.render_image(image_path, opts) do
-        {:ok, rendered} -> rendered
-        {:error, reason} -> render_image_error(image_path, reason)
-      end
-    end)
   end
 
-  defp image_mode_options(mode) do
-    case mode do
-      "small" -> [width: 150, height: 150]
-      "large" -> [width: 400, height: 400]
-      "thumbnail" -> [width: 80, height: 80]
-      _ -> []
-    end
-  end
 
   defp render_image_error(image_path, reason) do
     Terminal.style_text("[Image Error: #{image_path} - #{reason}]", :bright_red, nil)
+  end
+
+  defp extract_images_and_text(content) do
+    # Find image references but exclude ASCII art (which should stay inline)
+    image_matches = Regex.scan(~r/!\[(?!ascii)(?:small|large|thumbnail|[^\]]*)\]\([^)]+\)/, content)
+    images = Enum.map(image_matches, &List.first/1)
+    
+    # Remove images from text content but leave ASCII art inline
+    text_content = Enum.reduce(images, content, fn image, acc ->
+      String.replace(acc, image, "")
+    end)
+    |> String.replace(~r/\n\s*\n\s*\n/, "\n\n")  # Clean up extra newlines
+    |> String.trim()
+    
+    {text_content, images}
+  end
+
+  defp render_text_only_content(text_content, width, available_height) do
+    content_lines = render_content(text_content, width, available_height)
+    
+    # Calculate vertical centering
+    content_height = length(content_lines)
+    vertical_padding = max(0, div(available_height - content_height, 2))
+
+    # Render content lines centered
+    Enum.with_index(content_lines, vertical_padding + 1)
+    |> Enum.each(fn {line, row} ->
+      centered_line = Terminal.center_text(line, width)
+      Terminal.print_at(row, 1, centered_line)
+    end)
+  end
+
+  defp render_side_by_side_content(text_content, images, width, available_height) do
+    # Reserve space for images on the right side
+    image_width = min(div(width, 3), 80)  # Use up to 1/3 of screen for images
+    text_width = width - image_width - 4  # Leave some padding
+    
+    # Process text content for left side
+    text_lines = text_content
+    |> process_markdown_formatting()
+    |> Terminal.wrap_text(text_width - 4)  # Extra padding for text
+    |> Enum.take(available_height - 3)
+    
+    # Render images on right side
+    rendered_images = render_images_for_layout(images, image_width)
+    
+    # Calculate layout positioning
+    text_height = length(text_lines)
+    image_height = count_image_lines(rendered_images)
+    
+    # Start rendering from appropriate vertical position
+    max_content_height = max(text_height, image_height)
+    start_row = max(1, div(available_height - max_content_height, 2))
+    
+    # Render text on left side
+    Enum.with_index(text_lines, start_row)
+    |> Enum.each(fn {line, row} ->
+      Terminal.print_at(row, 2, line)  # Small left margin
+    end)
+    
+    # Render images on right side
+    image_start_col = text_width + 4
+    render_images_at_position(rendered_images, start_row, image_start_col)
+  end
+
+  defp render_images_for_layout(images, max_width) do
+    Enum.map(images, fn image_markdown ->
+      # Process the image markdown to get rendered content
+      case process_single_image(image_markdown, max_width) do
+        {:ok, rendered} -> rendered
+        {:error, reason} -> render_image_error(image_markdown, reason)
+      end
+    end)
+  end
+
+  defp process_single_image(image_markdown, max_width) do
+    # Extract image path and mode from markdown
+    case Regex.run(~r/!\[([^\]]*)\]\(([^)]+)\)/, image_markdown) do
+      [_, alt_text, image_path] ->
+        # Determine sizing based on alt text
+        opts = case alt_text do
+          "small" -> [width: max(div(max_width, 2), 20), height: 8]
+          "large" -> [width: min(max_width, 60), height: 15]
+          "thumbnail" -> [width: max(div(max_width, 3), 15), height: 5]
+          _ -> [width: max(div(max_width * 2, 3), 30), height: 10]
+        end
+        
+        ImageRenderer.render_image(image_path, opts)
+      
+      _ ->
+        {:error, "Invalid image format"}
+    end
+  end
+
+  defp count_image_lines(rendered_images) do
+    rendered_images
+    |> Enum.map(&String.split(&1, "\n"))
+    |> Enum.map(&length/1)
+    |> Enum.sum()
+  end
+
+  defp render_images_at_position(rendered_images, start_row, start_col) do
+    {_, _} = Enum.reduce(rendered_images, {start_row, start_col}, fn rendered_image, {current_row, col} ->
+      lines = String.split(rendered_image, "\n")
+      
+      # Render each line of the image
+      Enum.with_index(lines, current_row)
+      |> Enum.each(fn {line, row} ->
+        Terminal.print_at(row, col, line)
+      end)
+      
+      # Move to next position for next image
+      {current_row + length(lines) + 1, col}  # Add spacing between images
+    end)
   end
 end
