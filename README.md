@@ -46,6 +46,7 @@ mix escript.build
 ```
 
 **Optional: Enhanced experience with images**
+
 ```bash
 # Install ImageMagick for ASCII art generation
 brew install imagemagick
@@ -86,13 +87,16 @@ mix present path/to/slides.md
 
 ### Navigation
 
-- Next slide: Space, Enter, →, ↓, `n`, `j`
-- Previous slide: ←, ↑, `p`, `k`, `h`, Backspace
-- First/Last: `0` (Home), `$` (End)
-- Jump: `1-9`
-- Other: `r` = refresh, `?` or `/` = help, `q` = quit
+- **Next slide**: Just press **Enter** (or Space+Enter, n+Enter)
+- **Previous slide**: `p`+Enter (or k+Enter, h+Enter)
+- **First slide**: `0`+Enter
+- **Last slide**: `$`+Enter
+- **Jump to slide**: `1-9`+Enter
+- **Refresh**: `r`+Enter
+- **Help**: `?`+Enter or `/`+Enter
+- **Quit**: `q`+Enter
 
-Note: Depending on your terminal environment, arrow keys may require running the escript directly for best results.
+Note: All commands require pressing Enter after the key. This ensures reliable navigation across all terminal environments.
 
 ### ASCII image utility
 

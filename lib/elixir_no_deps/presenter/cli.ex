@@ -106,28 +106,28 @@ defmodule ElixirNoDeps.Presenter.CLI do
         --help, -h          Show this help message
 
     NAVIGATION:
-        Space, →, ↓, n, j, Enter    Next slide
-        ←, ↑, p, k, h, Backspace   Previous slide
-        0, Home                    First slide
-        $, End                     Last slide
-        1-9                        Jump to slide number
-        r                          Refresh/redraw
-        ?, /, F1                   Show help
-        q, Q, Ctrl+C, Ctrl+D       Quit presentation
+        Enter                      Next slide
+        p + Enter                  Previous slide
+        0 + Enter                  First slide
+        $ + Enter                  Last slide
+        1-9 + Enter                Jump to slide number
+        r + Enter                  Refresh/redraw
+        ? + Enter                  Show help
+        q + Enter                  Quit presentation
 
     FEATURES:
-        ✅ Raw keyboard input (no Enter needed!)
+        ✅ Simple Enter-based navigation
         ✅ ANSI colors and formatting
         ✅ ASCII art integration
         ✅ Markdown support with frontmatter
-        ✅ Multiple navigation methods
+        ✅ Works in all terminal environments
 
     EXAMPLES:
         present slides.md
         present presentation.md --theme dark --author "Your Name"
-        
-    NOTE: This escript version provides full raw keyboard input capabilities
-    that are not available in the Mix task version.
+
+    NOTE: All navigation requires pressing Enter after the key. This ensures
+    reliable operation across all terminal environments.
     """)
   end
 

@@ -177,7 +177,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
       :enter ->
         :next_slide
 
-      # Previous slide commands  
+      # Previous slide commands
       # p key
       "p" ->
         :prev_slide
@@ -296,21 +296,21 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     #{Terminal.style_text("PRESENTATION NAVIGATION HELP", :bright_cyan, :bold)}
 
     #{Terminal.style_text("Navigation:", :bright_yellow, :bold)}
-    Space, →, ↓, n, j, Enter    Next slide
-    ←, ↑, p, k, h, Backspace   Previous slide
-    0, Home                    First slide
-    $, End                     Last slide
-    1-9                        Jump to slide number
+    Enter             Next slide
+    p + Enter         Previous slide
+    0 + Enter         First slide
+    $ + Enter         Last slide
+    1-9 + Enter       Jump to slide number
 
     #{Terminal.style_text("Actions:", :bright_yellow, :bold)}
-    r                 Refresh/redraw
-    ?, /, F1          Show this help
-    q, Q, Ctrl+C, Ctrl+D    Quit presentation
+    r + Enter         Refresh/redraw
+    ? + Enter         Show this help
+    q + Enter         Quit presentation
 
-    #{Terminal.style_text("✨ Raw keyboard input enabled!", :bright_magenta, nil)}
-    #{Terminal.style_text("No need to press Enter - just press any key!", :bright_green, nil)}
+    #{Terminal.style_text("💡 Tip:", :bright_green, :bold)}
+    #{Terminal.style_text("Just press Enter to advance through slides!", :bright_green, nil)}
 
-    #{Terminal.style_text("Press any key to continue...", :bright_green, nil)}
+    #{Terminal.style_text("Press Enter to continue...", :bright_green, nil)}
     """
 
     # Center the help text
@@ -331,16 +331,8 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     # Hide cursor for presentation mode
     Terminal.hide_cursor()
 
-    if running_as_escript?() do
-      IO.puts("🎯 Escript mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
-      IO.puts("   Type 'q' + ENTER to quit. Arrow keys not available.")
-    else
-      IO.puts("🎯 Mix mode - Press ENTER to advance, type SPACE+ENTER or just ENTER")
-
-      IO.puts(
-        "   Type 'q' + ENTER to quit. For better experience: mix escript.build && ./present file.md"
-      )
-    end
+    IO.puts("📍 Navigation: Press Enter to advance, 'p'+Enter to go back, 'q'+Enter to quit")
+    IO.puts("   For help, press '?'+Enter at any time")
   end
 
   defp running_as_escript? do
