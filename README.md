@@ -46,6 +46,7 @@ mix escript.build
 ```
 
 **Optional: Enhanced experience with images**
+
 ```bash
 # Install ImageMagick for ASCII art generation
 brew install imagemagick
