@@ -10,6 +10,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   """
 
   alias ElixirNoDeps.Presenter.AsciiProcessor
+  alias ElixirNoDeps.Presenter.ImageRenderer
   alias ElixirNoDeps.Presenter.Presentation
   alias ElixirNoDeps.Presenter.Slide
   alias ElixirNoDeps.Presenter.Terminal
@@ -76,6 +77,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   @spec process_markdown_formatting(String.t()) :: String.t()
   def process_markdown_formatting(content) do
     content
+    |> process_images()
     |> AsciiProcessor.process_ascii_art()
     |> process_headers()
     |> process_emphasis()
@@ -204,5 +206,44 @@ defmodule ElixirNoDeps.Presenter.Renderer do
       item = String.replace(match, ~r/^[\s]*\d+\.\s+/, "")
       Terminal.style_text("    #{item}", :bright_blue, nil)
     end)
+  end
+
+  defp process_images(content) do
+    # Process standard markdown images ![alt](path)
+    # Skip images that already have special alt text (ascii, small, large, thumbnail)
+    content
+    |> String.replace(~r/!\[(?!(?:ascii|small|large|thumbnail)\])[^\]]*\]\(([^)]+)\)/, fn match ->
+      # Extract image path from the match
+      [_, image_path] = Regex.run(~r/!\[[^\]]*\]\(([^)]+)\)/, match)
+      
+      case ImageRenderer.render_image(image_path) do
+        {:ok, rendered} -> rendered
+        {:error, reason} -> render_image_error(image_path, reason)
+      end
+    end)
+    # Process mode-specific images ![mode](path)
+    |> String.replace(~r/!\[(small|large|thumbnail)\]\(([^)]+)\)/, fn match ->
+      [_, mode, image_path] = Regex.run(~r/!\[([^\]]+)\]\(([^)]+)\)/, match)
+      
+      opts = image_mode_options(mode)
+      
+      case ImageRenderer.render_image(image_path, opts) do
+        {:ok, rendered} -> rendered  
+        {:error, reason} -> render_image_error(image_path, reason)
+      end
+    end)
+  end
+
+  defp image_mode_options(mode) do
+    case mode do
+      "small" -> [width: 150, height: 150]
+      "large" -> [width: 400, height: 400] 
+      "thumbnail" -> [width: 80, height: 80]
+      _ -> []
+    end
+  end
+
+  defp render_image_error(image_path, reason) do
+    Terminal.style_text("[Image Error: #{image_path} - #{reason}]", :bright_red, nil)
   end
 end
