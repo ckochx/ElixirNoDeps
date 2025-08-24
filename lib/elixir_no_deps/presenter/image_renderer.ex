@@ -1,7 +1,7 @@
 defmodule ElixirNoDeps.Presenter.ImageRenderer do
   @moduledoc """
   Renders images directly in terminals using various protocols.
-  
+
   Supported protocols:
   - iTerm2 Inline Images
   - Kitty Graphics Protocol  
@@ -11,7 +11,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
 
   @doc """
   Renders an image directly in the terminal using the best available protocol.
-  
+
   Returns the rendered content as a string with terminal escape sequences.
   """
   @spec render_image(String.t(), keyword()) :: {:ok, String.t()} | {:error, String.t()}
@@ -41,7 +41,8 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
   @doc """
   Renders an image using a specific protocol.
   """
-  @spec render_with_protocol(String.t(), atom(), keyword()) :: {:ok, String.t()} | {:error, String.t()}
+  @spec render_with_protocol(String.t(), atom(), keyword()) ::
+          {:ok, String.t()} | {:error, String.t()}
   def render_with_protocol(image_path, protocol, opts \\ [])
 
   def render_with_protocol(image_path, :iterm2, opts) do
@@ -87,9 +88,9 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
       encoded = Base.encode64(image_data)
       file_size = byte_size(image_data)
       encoded_size = byte_size(encoded)
-      
+
       size_params = build_iterm2_size_params(opts, file_size, encoded_size)
-      
+
       escape_sequence = "\e]1337;File=#{size_params}:#{encoded}\a"
       {:ok, escape_sequence}
     else
@@ -100,7 +101,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
   defp render_kitty(image_path, _opts) do
     with {:ok, image_data} <- File.read(image_path) do
       encoded = Base.encode64(image_data)
-      
+
       # Kitty graphics escape sequence
       # a=T means transmission, f=100 means PNG format, m=1 means more data follows
       escape_sequence = "\e_Ga=T,f=100,m=1;#{encoded}\e\\"
@@ -113,12 +114,13 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
   defp render_sixel(image_path, opts) do
     width = Keyword.get(opts, :width, 250)
     height = Keyword.get(opts, :height, 250)
-    
+
     case System.cmd("magick", [
-      image_path, 
-      "-resize", "#{width}x#{height}",
-      "sixel:-"
-    ]) do
+           image_path,
+           "-resize",
+           "#{width}x#{height}",
+           "sixel:-"
+         ]) do
       {sixel_data, 0} -> {:ok, sixel_data}
       {error, _} -> {:error, "ImageMagick failed: #{error}"}
     end
@@ -127,7 +129,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
   defp render_unicode_blocks(image_path, _opts) do
     # Fallback to ASCII art using existing AsciiProcessor
     alias ElixirNoDeps.Presenter.AsciiProcessor
-    
+
     case AsciiProcessor.process_ascii_art("![ascii](#{image_path})") do
       processed when is_binary(processed) -> {:ok, processed}
       _ -> {:error, "Failed to generate ASCII art"}
@@ -139,26 +141,29 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
       "size=#{file_size}",
       "inline=1"
     ]
-    
-    params = if width = Keyword.get(opts, :width) do
-      ["width=#{width}" | params]
-    else
-      params
-    end
-    
-    params = if height = Keyword.get(opts, :height) do
-      ["height=#{height}" | params]
-    else
-      params
-    end
-    
+
+    params =
+      if width = Keyword.get(opts, :width) do
+        ["width=#{width}" | params]
+      else
+        params
+      end
+
+    params =
+      if height = Keyword.get(opts, :height) do
+        ["height=#{height}" | params]
+      else
+        params
+      end
+
     # Only add preserveAspectRatio if explicitly set
-    params = case Keyword.get(opts, :preserve_aspect_ratio) do
-      nil -> params
-      true -> ["preserveAspectRatio=1" | params]
-      false -> ["preserveAspectRatio=0" | params]
-    end
-    
+    params =
+      case Keyword.get(opts, :preserve_aspect_ratio) do
+        nil -> params
+        true -> ["preserveAspectRatio=1" | params]
+        false -> ["preserveAspectRatio=0" | params]
+      end
+
     Enum.join(params, ";")
   end
 end

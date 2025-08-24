@@ -215,7 +215,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     |> String.replace(~r/!\[(?!(?:ascii|small|large|thumbnail)\])[^\]]*\]\(([^)]+)\)/, fn match ->
       # Extract image path from the match
       [_, image_path] = Regex.run(~r/!\[[^\]]*\]\(([^)]+)\)/, match)
-      
+
       case ImageRenderer.render_image(image_path) do
         {:ok, rendered} -> rendered
         {:error, reason} -> render_image_error(image_path, reason)
@@ -224,11 +224,11 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     # Process mode-specific images ![mode](path)
     |> String.replace(~r/!\[(small|large|thumbnail)\]\(([^)]+)\)/, fn match ->
       [_, mode, image_path] = Regex.run(~r/!\[([^\]]+)\]\(([^)]+)\)/, match)
-      
+
       opts = image_mode_options(mode)
-      
+
       case ImageRenderer.render_image(image_path, opts) do
-        {:ok, rendered} -> rendered  
+        {:ok, rendered} -> rendered
         {:error, reason} -> render_image_error(image_path, reason)
       end
     end)
@@ -237,7 +237,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
   defp image_mode_options(mode) do
     case mode do
       "small" -> [width: 150, height: 150]
-      "large" -> [width: 400, height: 400] 
+      "large" -> [width: 400, height: 400]
       "thumbnail" -> [width: 80, height: 80]
       _ -> []
     end

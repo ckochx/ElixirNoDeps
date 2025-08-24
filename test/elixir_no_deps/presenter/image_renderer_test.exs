@@ -35,8 +35,8 @@ defmodule ElixirNoDeps.Presenter.ImageRendererTest do
     end
 
     test "returns error for non-existent file" do
-      assert {:error, "Image file not found: /nonexistent/image.png"} = 
-        ImageRenderer.render_image("/nonexistent/image.png")
+      assert {:error, "Image file not found: /nonexistent/image.png"} =
+               ImageRenderer.render_image("/nonexistent/image.png")
     end
 
     test "renders image using detected protocol", %{test_image: test_image} do
@@ -101,9 +101,9 @@ defmodule ElixirNoDeps.Presenter.ImageRendererTest do
     test "iTerm2 includes size parameters", %{test_image: test_image} do
       opts = [width: 200, height: 150, preserve_aspect_ratio: false]
       assert {:ok, rendered} = ImageRenderer.render_with_protocol(test_image, :iterm2, opts)
-      
+
       assert rendered =~ "width=200"
-      assert rendered =~ "height=150"  
+      assert rendered =~ "height=150"
       assert rendered =~ "preserveAspectRatio=0"
       assert rendered =~ "size="
       assert rendered =~ "inline=1"
@@ -112,7 +112,7 @@ defmodule ElixirNoDeps.Presenter.ImageRendererTest do
     test "iTerm2 preserves aspect ratio by default", %{test_image: test_image} do
       opts = [width: 200]
       assert {:ok, rendered} = ImageRenderer.render_with_protocol(test_image, :iterm2, opts)
-      
+
       # Should not contain preserveAspectRatio since it's not explicitly set
       refute rendered =~ "preserveAspectRatio"
       # But should contain size and inline parameters
@@ -123,11 +123,11 @@ defmodule ElixirNoDeps.Presenter.ImageRendererTest do
 
   # Helper function to set environment variables for tests
   defp with_env(env_vars, fun) do
-    original_env = 
-      Enum.map(env_vars, fn {key, _value} -> 
+    original_env =
+      Enum.map(env_vars, fn {key, _value} ->
         {key, System.get_env(key)}
       end)
-    
+
     try do
       Enum.each(env_vars, fn {key, value} ->
         if value do
@@ -136,7 +136,7 @@ defmodule ElixirNoDeps.Presenter.ImageRendererTest do
           System.delete_env(key)
         end
       end)
-      
+
       fun.()
     after
       Enum.each(original_env, fn {key, value} ->
