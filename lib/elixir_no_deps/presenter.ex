@@ -17,7 +17,7 @@ defmodule ElixirNoDeps.Presenter do
 
       # Run a presentation
       ElixirNoDeps.Presenter.run("slides.md")
-      
+
       # Run with options
       ElixirNoDeps.Presenter.run("slides.md", theme: "dark")
   """
@@ -51,8 +51,8 @@ defmodule ElixirNoDeps.Presenter do
     # Setup cleanup handler
     setup_cleanup_handler()
 
-    IO.puts("Starting presentation with raw keyboard input...")
-    IO.puts("Press Space to advance, '?' for help, or 'q' to quit\n")
+    IO.puts("Starting presentation...")
+    IO.puts("Press Enter to advance, '?' for help, or 'q' to quit\n")
 
     # Small delay to let user see the message
     Process.sleep(1000)
@@ -100,7 +100,7 @@ defmodule ElixirNoDeps.Presenter do
     - **No external dependencies**
 
     ## Navigation
-    - `Space`, `→`, `j`: Next slide  
+    - `Space`, `→`, `j`: Next slide
     - `←`, `k`, `h`: Previous slide
     - `q`: Quit
 
@@ -126,10 +126,10 @@ defmodule ElixirNoDeps.Presenter do
 
     ## Unordered Lists
     - First item
-    - Second item  
+    - Second item
     - Third item
 
-    ## Numbered Lists  
+    ## Numbered Lists
     1. Step one
     2. Step two
     3. Step three
