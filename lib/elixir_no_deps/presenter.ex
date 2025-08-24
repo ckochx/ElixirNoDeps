@@ -5,9 +5,9 @@ defmodule ElixirNoDeps.Presenter do
   Provides a simple API to run presentations from markdown files.
   """
 
+  alias ElixirNoDeps.Presenter.Input
   alias ElixirNoDeps.Presenter.Navigator
   alias ElixirNoDeps.Presenter.Parser
-  alias ElixirNoDeps.Presenter.RawInput
   alias ElixirNoDeps.Presenter.Terminal
 
   @doc """
@@ -178,13 +178,13 @@ defmodule ElixirNoDeps.Presenter do
     try do
       result = Navigator.run(presentation)
       # Ensure terminal is always restored
-      RawInput.disable_raw_mode()
+      Input.disable_raw_mode()
       Terminal.show_cursor()
       result
     rescue
       error ->
         # Ensure terminal restoration on error
-        RawInput.disable_raw_mode()
+        Input.disable_raw_mode()
         Terminal.show_cursor()
         Terminal.clear_screen()
         IO.puts("\nError during presentation: #{inspect(error)}")
@@ -192,7 +192,7 @@ defmodule ElixirNoDeps.Presenter do
     catch
       :exit, reason ->
         # Ensure terminal restoration on exit
-        RawInput.disable_raw_mode()
+        Input.disable_raw_mode()
         Terminal.show_cursor()
         Terminal.clear_screen()
         IO.puts("\nPresentation interrupted: #{inspect(reason)}")
