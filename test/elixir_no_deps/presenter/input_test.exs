@@ -1,17 +1,17 @@
-defmodule ElixirNoDeps.Presenter.RawInputTest do
+defmodule ElixirNoDeps.Presenter.InputTest do
   use ExUnit.Case, async: false
 
-  alias ElixirNoDeps.Presenter.RawInput
+  alias ElixirNoDeps.Presenter.Input
 
   describe "enable_raw_mode/0 and disable_raw_mode/0" do
     test "enable and disable raw mode without errors" do
       # Test that we can enable raw mode
-      result_enable = RawInput.enable_raw_mode()
+      result_enable = Input.enable_raw_mode()
       # Should not crash
       assert result_enable in [:ok, :error]
 
       # Test that we can disable raw mode
-      result_disable = RawInput.disable_raw_mode()
+      result_disable = Input.disable_raw_mode()
       # Should not crash
       assert result_disable in [:ok, :error]
     end
@@ -22,7 +22,7 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
       test_value = :test_result
 
       result =
-        RawInput.with_raw_mode(fn ->
+        Input.with_raw_mode(fn ->
           test_value
         end)
 
@@ -31,7 +31,7 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
 
     test "restores terminal mode even if function raises" do
       assert_raise RuntimeError, "test error", fn ->
-        RawInput.with_raw_mode(fn ->
+        Input.with_raw_mode(fn ->
           raise "test error"
         end)
       end
@@ -42,16 +42,16 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
 
     test "handles function that returns different types" do
       # Test with various return types
-      assert RawInput.with_raw_mode(fn -> 42 end) == 42
-      assert RawInput.with_raw_mode(fn -> "hello" end) == "hello"
-      assert RawInput.with_raw_mode(fn -> [:a, :b, :c] end) == [:a, :b, :c]
-      assert RawInput.with_raw_mode(fn -> %{key: :value} end) == %{key: :value}
+      assert Input.with_raw_mode(fn -> 42 end) == 42
+      assert Input.with_raw_mode(fn -> "hello" end) == "hello"
+      assert Input.with_raw_mode(fn -> [:a, :b, :c] end) == [:a, :b, :c]
+      assert Input.with_raw_mode(fn -> %{key: :value} end) == %{key: :value}
     end
   end
 
   describe "get_terminal_size/0" do
     test "returns reasonable terminal dimensions" do
-      {width, height} = RawInput.get_terminal_size()
+      {width, height} = Input.get_terminal_size()
 
       assert is_integer(width)
       assert is_integer(height)
@@ -66,7 +66,7 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
     test "returns default values when stty fails" do
       # Mock System.cmd to fail
       # (This is tricky to test without actual mocking, so we test the fallback behavior)
-      {width, height} = RawInput.get_terminal_size()
+      {width, height} = Input.get_terminal_size()
 
       # Should at least return integers
       assert is_integer(width)
@@ -84,8 +84,10 @@ defmodule ElixirNoDeps.Presenter.RawInputTest do
       # the function exists and handles errors gracefully
 
       # The function should exist and be callable
-      assert function_exported?(RawInput, :get_raw_char, 0)
-      assert function_exported?(RawInput, :get_raw_key, 0)
+      # The unified Input module uses different function names
+      assert function_exported?(Input, :get_input, 0)
+      assert function_exported?(Input, :get_mix_input, 0)
+      assert function_exported?(Input, :get_raw_input, 0)
     end
   end
 
