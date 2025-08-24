@@ -335,14 +335,6 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     IO.puts("   For help, press '?'+Enter at any time")
   end
 
-  defp running_as_escript? do
-    case :escript.script_name() do
-      :undefined -> false
-      _name -> true
-    end
-  rescue
-    _ -> false
-  end
 
   defp restore_terminal do
     Input.disable_raw_mode()
