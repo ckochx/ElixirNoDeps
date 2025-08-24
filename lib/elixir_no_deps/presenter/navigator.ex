@@ -11,10 +11,9 @@ defmodule ElixirNoDeps.Presenter.Navigator do
 
   use GenServer
 
+  alias ElixirNoDeps.Presenter.Input
   alias ElixirNoDeps.Presenter.Presentation
-  alias ElixirNoDeps.Presenter.RawInput
   alias ElixirNoDeps.Presenter.Renderer
-  alias ElixirNoDeps.Presenter.SimpleInput
   alias ElixirNoDeps.Presenter.Terminal
 
   @doc """
@@ -140,15 +139,9 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end
   end
 
-  # Smart input method - tries raw input, falls back to simple input
+  # Unified input method that adapts to the runtime environment
   defp get_input do
-    # Always use SimpleInput - it works reliably
-    get_simple_input()
-  end
-
-  # Simplified input method that works in Mix context
-  defp get_simple_input do
-    case SimpleInput.get_smart_input() do
+    case Input.get_input() do
       # Quit commands
       "q" ->
         :quit
@@ -331,7 +324,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     end)
 
     # Wait for any key
-    RawInput.get_raw_key()
+    Input.get_input()
   end
 
   defp configure_terminal do
@@ -360,14 +353,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   end
 
   defp restore_terminal do
-    if running_as_escript?() do
-      # Restore terminal directly for escript
-      System.cmd("stty", ["cooked", "echo"], stderr_to_stdout: true)
-    else
-      # Use RawInput for Mix mode
-      RawInput.disable_raw_mode()
-    end
-
+    Input.disable_raw_mode()
     Terminal.show_cursor()
     Terminal.clear_screen()
     # Flush any remaining output
