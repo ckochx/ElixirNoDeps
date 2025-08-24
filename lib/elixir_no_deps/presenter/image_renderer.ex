@@ -63,6 +63,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
 
   # Private functions
 
+
   defp iterm2_supported? do
     System.get_env("TERM_PROGRAM") == "iTerm.app"
   end
@@ -90,8 +91,9 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
       encoded_size = byte_size(encoded)
 
       size_params = build_iterm2_size_params(opts, file_size, encoded_size)
-
-      escape_sequence = "\e]1337;File=#{size_params}:#{encoded}\a"
+      
+      # Create image with newline for better spacing
+      escape_sequence = "\e]1337;File=#{size_params}:#{encoded}\a\n"
       {:ok, escape_sequence}
     else
       {:error, reason} -> {:error, "Failed to read image: #{reason}"}
@@ -137,32 +139,23 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
   end
 
   defp build_iterm2_size_params(opts, file_size, _encoded_size) do
+    # Start with basic parameters
     params = [
       "size=#{file_size}",
-      "inline=1"
+      "inline=1",
+      "preserveAspectRatio=1"  # Always preserve aspect ratio
     ]
 
-    params =
-      if width = Keyword.get(opts, :width) do
-        ["width=#{width}" | params]
-      else
-        params
-      end
+    # Use smaller default sizes for better screen sharing
+    width = Keyword.get(opts, :width, 80)   # Much smaller default
+    height = Keyword.get(opts, :height, 20) # Much smaller default
+    
+    # Ensure reasonable maximum sizes - much more conservative
+    max_width = min(width, 120)  # Lower cap
+    max_height = min(height, 30) # Lower cap
 
-    params =
-      if height = Keyword.get(opts, :height) do
-        ["height=#{height}" | params]
-      else
-        params
-      end
-
-    # Only add preserveAspectRatio if explicitly set
-    params =
-      case Keyword.get(opts, :preserve_aspect_ratio) do
-        nil -> params
-        true -> ["preserveAspectRatio=1" | params]
-        false -> ["preserveAspectRatio=0" | params]
-      end
+    params = ["width=#{max_width}" | params]
+    params = ["height=#{max_height}" | params]
 
     Enum.join(params, ";")
   end
