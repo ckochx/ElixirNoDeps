@@ -1,7 +1,8 @@
 defmodule ElixirNoDeps.Presenter.ParserTest do
   use ExUnit.Case, async: true
 
-  alias ElixirNoDeps.Presenter.{Parser, Presentation, Slide}
+  alias ElixirNoDeps.Presenter.Parser
+  alias ElixirNoDeps.Presenter.Slide
 
   describe "parse_content/2" do
     test "parses simple markdown without frontmatter" do

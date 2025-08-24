@@ -1,7 +1,8 @@
 defmodule ElixirNoDeps.Presenter.PresentationTest do
   use ExUnit.Case, async: true
 
-  alias ElixirNoDeps.Presenter.{Presentation, Slide}
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.Slide
 
   describe "new/2" do
     test "creates empty presentation with defaults" do

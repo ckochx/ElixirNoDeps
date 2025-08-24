@@ -1,7 +1,9 @@
 defmodule ElixirNoDeps.Presenter.RendererTest do
   use ExUnit.Case, async: true
 
-  alias ElixirNoDeps.Presenter.{Renderer, Presentation, Slide}
+  alias ElixirNoDeps.Presenter.Renderer
+  alias ElixirNoDeps.Presenter.Presentation
+  alias ElixirNoDeps.Presenter.Slide
 
   describe "process_markdown_formatting/1" do
     test "processes headers with color styling" do
