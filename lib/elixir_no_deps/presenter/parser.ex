@@ -87,7 +87,7 @@ defmodule ElixirNoDeps.Presenter.Parser do
   def parse_slides(content) do
     # Slides are separated by `---` delimiters
     # If there are no `---` delimiters in the content, there are no slides
-    slides = 
+    slides =
       content
       |> String.split(~r/\n\s*---\s*\n/)
       |> Enum.map(&String.trim/1)

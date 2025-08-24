@@ -226,33 +226,35 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
 
   defp pixel_rgb_value(pixel) do
     color_string = pixel |> Enum.at(-1)
-    
+
     # Handle both srgb(...) and srgba(...) formats
-    rgb_values = cond do
-      String.starts_with?(color_string, "srgba(") ->
-        # Extract RGB values from srgba(r,g,b,a) - ignore alpha channel
-        color_string
-        |> String.slice(6..-2//1)
-        |> String.split(",")
-        |> Enum.take(3)  # Only take first 3 values (RGB), ignore alpha
-        |> Enum.map(&parse_percentage_to_rgb/1)
-        
-      String.starts_with?(color_string, "srgb(") ->
-        # Extract RGB values from srgb(r,g,b)
-        color_string
-        |> String.slice(5..-2//1)
-        |> String.split(",")
-        |> Enum.map(&parse_percentage_to_rgb/1)
-        
-      true ->
-        # Fallback - assume old format
-        color_string
-        |> String.slice(5..-2//1)
-        |> String.split(",")
-        |> Enum.take(3)
-        |> Enum.map(&parse_percentage_to_rgb/1)
-    end
-    
+    rgb_values =
+      cond do
+        String.starts_with?(color_string, "srgba(") ->
+          # Extract RGB values from srgba(r,g,b,a) - ignore alpha channel
+          color_string
+          |> String.slice(6..-2//1)
+          |> String.split(",")
+          # Only take first 3 values (RGB), ignore alpha
+          |> Enum.take(3)
+          |> Enum.map(&parse_percentage_to_rgb/1)
+
+        String.starts_with?(color_string, "srgb(") ->
+          # Extract RGB values from srgb(r,g,b)
+          color_string
+          |> String.slice(5..-2//1)
+          |> String.split(",")
+          |> Enum.map(&parse_percentage_to_rgb/1)
+
+        true ->
+          # Fallback - assume old format
+          color_string
+          |> String.slice(5..-2//1)
+          |> String.split(",")
+          |> Enum.take(3)
+          |> Enum.map(&parse_percentage_to_rgb/1)
+      end
+
     # Ensure we always have 3 RGB values
     case length(rgb_values) do
       3 -> rgb_values
