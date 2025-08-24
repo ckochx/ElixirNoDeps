@@ -7,6 +7,6 @@ defmodule Mix.Tasks.Asciify do
 
   @shortdoc "Runs the ElixirAsciiImage.asciify/1 function"
   def run(args) do
-    ElixirNoDeps.AsciiImage.asciify List.first(args)
+    ElixirNoDeps.AsciiImage.asciify(List.first(args))
   end
 end
