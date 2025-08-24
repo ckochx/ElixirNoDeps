@@ -94,6 +94,49 @@ defmodule ElixirNoDeps.Presenter.RendererTest do
       # bright_blue
       assert String.contains?(result, "\e[94m")
     end
+
+    test "processes standard markdown images" do
+      content = "![Company Logo](test/fixtures/images/test_blue.png)"
+      result = Renderer.process_markdown_formatting(content)
+
+      # Should contain image escape sequence or error message
+      assert is_binary(result)
+      # Should not contain the original markdown syntax
+      refute String.contains?(result, "![Company Logo](test/fixtures/images/test_blue.png)")
+    end
+
+    test "processes sized images" do
+      content = """
+      ![small](test/fixtures/images/test_red.jpg)
+      ![large](test/fixtures/images/test_blue.png)
+      ![thumbnail](test/fixtures/images/test_red.jpg)
+      """
+
+      result = Renderer.process_markdown_formatting(content)
+
+      # Should not contain the original markdown syntax
+      refute String.contains?(result, "![small](")
+      refute String.contains?(result, "![large](")
+      refute String.contains?(result, "![thumbnail](")
+    end
+
+    test "handles missing image files gracefully" do
+      content = "![Missing](nonexistent.png)"
+      result = Renderer.process_markdown_formatting(content)
+
+      # Should contain error message instead of failing
+      assert String.contains?(result, "[Image Error:")
+      assert String.contains?(result, "nonexistent.png")
+    end
+
+    test "leaves ascii images for AsciiProcessor" do
+      content = "![ascii](test/fixtures/images/test_blue.png)"
+      result = Renderer.process_markdown_formatting(content)
+
+      # Should still be processed by AsciiProcessor, so original syntax might be gone
+      # This test mainly ensures no exception is thrown
+      assert is_binary(result)
+    end
   end
 
   describe "render_content/3" do
