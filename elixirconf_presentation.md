@@ -17,7 +17,7 @@ conference: "ElixirConf US 2025"
 
 **Co-Presenting: ElixirNoDeps**
 
-![Man Coding](priv/assets/man-coding.png)
+![Man Coding](priv/assets/hello-cleveland.png)
 
 ---
 
