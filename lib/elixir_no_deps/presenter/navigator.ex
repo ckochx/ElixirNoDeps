@@ -64,6 +64,24 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     GenServer.call(__MODULE__, :get_presentation)
   end
 
+  @doc """
+  Simulates a key press for remote control.
+  """
+  @spec simulate_key_press(String.t()) :: :ok | :quit
+  def simulate_key_press(key) do
+    command =
+      case key do
+        "enter" -> :next_slide
+        # space bar
+        " " -> :next_slide
+        "p" -> :prev_slide
+        "q" -> :quit
+        _ -> :unknown
+      end
+
+    navigate(command)
+  end
+
   # GenServer callbacks
 
   @impl true
@@ -77,6 +95,8 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   def handle_call({:navigate, command}, _from, presentation) do
     case process_navigation_command(command, presentation) do
       {:ok, new_presentation} ->
+        # Re-render the terminal when navigation succeeds (for web remote control)
+        Renderer.render_slide(new_presentation)
         {:reply, :ok, new_presentation}
 
       {:quit} ->
@@ -334,7 +354,6 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     IO.puts("📍 Navigation: Press Enter to advance, 'p'+Enter to go back, 'q'+Enter to quit")
     IO.puts("   For help, press '?'+Enter at any time")
   end
-
 
   defp restore_terminal do
     Input.disable_raw_mode()
