@@ -98,6 +98,80 @@ mix present path/to/slides.md
 
 Note: All commands require pressing Enter after the key. This ensures reliable navigation across all terminal environments.
 
+## 📱 Remote Control (Conference Mode)
+
+Control your presentation from your phone while the audience sees a clean terminal display. Perfect for conferences where WiFi is unreliable!
+
+### Quick Start
+
+```bash
+# Start presentation with remote control
+mix remote_present slides.md
+
+# Or with custom port
+mix remote_present slides.md --port 3000
+
+# Try the demo
+mix remote_present --demo
+```
+
+### How It Works
+
+1. **Terminal presentation** for the audience (clean, professional)
+2. **Web interface** for the presenter (speaker notes + controls)
+3. **Local network only** - no WiFi required
+
+### Conference Setup (No WiFi Required)
+
+**Step 1: Create laptop hotspot**
+
+- **macOS**: System Preferences → Sharing → Internet Sharing
+- **Windows**: Settings → Network → Mobile hotspot
+- **Linux**: Settings → WiFi → Use as Hotspot
+
+**Step 2: Connect phone to hotspot**
+
+**Step 3: Start presentation**
+
+```bash
+mix remote_present slides.md
+```
+
+**Step 4: Connect to displayed URL on your phone**
+
+- First slide shows connection URL (e.g., `http://192.168.1.100:8080`)
+- Open that URL in your phone's browser
+- You'll see slide controls and speaker notes
+
+**Step 5: Present with confidence!**
+
+- Press Enter to advance past connection slide
+- Control all navigation from your phone
+- Audience sees clean terminal presentation
+
+### Speaker Notes
+
+Add private speaker notes using HTML comments:
+
+```markdown
+# My Slide Title
+
+Public content that audience sees.
+
+<!-- Speaker notes: Remember to mention the key benefits. Only you see this on your phone! -->
+```
+
+### Remote Control Features
+
+- 📱 **Mobile-optimized interface** - works on any phone/tablet
+- 📝 **Speaker notes** - visible only to you
+- 🎮 **Slide controls** - Next, Previous, Go to slide number
+- 📊 **Progress tracking** - see current slide (e.g., "5/20")
+- ⚡ **Real-time sync** - terminal updates instantly
+- 🔒 **No internet required** - uses local network only
+
+For detailed setup instructions, see [REMOTE_CONTROL_SETUP.md](REMOTE_CONTROL_SETUP.md).
+
 ### ASCII image utility
 
 Generate ASCII art from an image:
