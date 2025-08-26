@@ -67,7 +67,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
         handle_presenter_login(request)
 
       {"GET", "/presenter/control"} ->
-        serve_controller_interface()
+        handle_authenticated_presenter_route(request)
 
       {"GET", "/audience"} ->
         serve_audience_interface()
@@ -1079,6 +1079,70 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 opacity: 0.7;
             }
 
+            .contact-section {
+                margin-top: 25px;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .contact-section h3 {
+                color: #3498db;
+                margin-bottom: 15px;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
+
+            .contact-links {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .contact-link {
+                color: #ecf0f1;
+                text-decoration: none;
+                padding: 10px 20px;
+                background: rgba(52, 152, 219, 0.2);
+                border-radius: 8px;
+                border: 1px solid rgba(52, 152, 219, 0.3);
+                transition: all 0.3s ease;
+                font-weight: 500;
+                min-width: 250px;
+                text-align: center;
+            }
+
+            .contact-link:hover {
+                background: rgba(52, 152, 219, 0.4);
+                border-color: #3498db;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .repo-link {
+                background: rgba(46, 204, 113, 0.2);
+                border-color: rgba(46, 204, 113, 0.3);
+            }
+
+            .repo-link:hover {
+                background: rgba(46, 204, 113, 0.4);
+                border-color: #2ecc71;
+            }
+
+            @media (min-width: 768px) {
+                .contact-links {
+                    flex-direction: row;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                
+                .contact-link {
+                    min-width: 200px;
+                }
+            }
+
             .loading {
                 text-align: center;
                 opacity: 0.7;
@@ -1200,6 +1264,21 @@ defmodule ElixirNoDeps.WebRemoteServer do
             <div class="audience-footer">
                 <p>🔄 This view updates automatically as the presenter advances slides</p>
                 <p>👋 Welcome to the presentation experience!</p>
+                
+                <div class="contact-section">
+                    <h3>📞 Connect with the Presenters</h3>
+                    <div class="contact-links">
+                        <a href="https://www.linkedin.com/in/jeremysearls/" target="_blank" class="contact-link">
+                            💼 Jeremy Searls - LinkedIn
+                        </a>
+                        <a href="https://www.linkedin.com/in/ckochx/" target="_blank" class="contact-link">
+                            💼 Chris Koch - LinkedIn  
+                        </a>
+                        <a href="https://github.com/ckochx/ElixirNoDeps" target="_blank" class="contact-link repo-link">
+                            🔗 View Source Code on GitHub
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1350,8 +1429,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
     # Check password using hash-based authentication
     if verify_presenter_password(password) do
-      # Redirect to presenter control interface
-      build_http_response(302, "text/html", "", [{"Location", "/presenter/control"}])
+      # Create session token and redirect to presenter control interface
+      session_token = create_presenter_session()
+      build_http_response(302, "text/html", "", [
+        {"Location", "/presenter/control"},
+        {"Set-Cookie", "presenter_session=#{session_token}; Path=/; HttpOnly; SameSite=Strict"}
+      ])
     else
       # Show login page with error
       serve_presenter_login_error()
@@ -1862,18 +1945,81 @@ defmodule ElixirNoDeps.WebRemoteServer do
     end
   end
 
-  # Password verification using hash-based authentication
-  # To change the presenter password:
-  # 1. Run in iex: :crypto.hash(:sha256, "your_new_password") |> Base.encode16(case: :lower)
-  # 2. Replace the hash below with the new hash
-  # Current password hash is for: "jerry"
+  # Session-based authentication for presenter routes
+  defp handle_authenticated_presenter_route(request) do
+    case extract_session_token(request) do
+      {:ok, token} when is_binary(token) ->
+        if verify_presenter_session(token) do
+          serve_controller_interface()
+        else
+          # Invalid or expired session, redirect to login
+          build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
+        end
+      
+      _ ->
+        # No session token, redirect to login
+        build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
+    end
+  end
+
+  # Extract session token from request cookies
+  defp extract_session_token(request) do
+    # Simple cookie parsing to find presenter_session
+    case String.split(request, "\r\n") do
+      lines ->
+        cookie_line = Enum.find(lines, &String.starts_with?(&1, "Cookie:"))
+        
+        case cookie_line do
+          "Cookie: " <> cookies ->
+            # Parse cookies to find presenter_session
+            cookies
+            |> String.split(";")
+            |> Enum.map(&String.trim/1)
+            |> Enum.find(&String.starts_with?(&1, "presenter_session="))
+            |> case do
+              "presenter_session=" <> token -> {:ok, String.trim(token)}
+              _ -> {:error, :not_found}
+            end
+          
+          _ ->
+            {:error, :not_found}
+        end
+    end
+  end
+
+  # Create a new presenter session token
+  defp create_presenter_session() do
+    # Generate a secure random token
+    token = :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
+    
+    # Store session with 24 hour expiration
+    expiry = DateTime.utc_now() |> DateTime.add(24, :hour)
+    
+    # Store in ETS (reuse the poll storage table)
+    :ets.insert(:poll_votes, {{"session", token}, expiry})
+    
+    token
+  end
+
+  # Verify a presenter session token
+  defp verify_presenter_session(token) do
+    case :ets.lookup(:poll_votes, {"session", token}) do
+      [{_, expiry}] ->
+        # Check if session hasn't expired
+        DateTime.compare(DateTime.utc_now(), expiry) == :lt
+      
+      [] ->
+        false
+    end
+  end
+
   defp verify_presenter_password(input_password) do
     # SHA256 hash of the presenter password
     stored_hash = "3a5a2512949399115565867a73a413ec6ba215c8f2df385f78b33238a6639b7c"
-    
+
     # Hash the input password and compare
     input_hash = :crypto.hash(:sha256, input_password) |> Base.encode16(case: :lower)
-    
+
     # Constant-time comparison to prevent timing attacks
     stored_hash == input_hash
   end
