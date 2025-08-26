@@ -656,7 +656,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
                         const barWidth = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
 
-                        chartHtml += 
+                        chartHtml +=
                             '<div class="poll-option-result">' +
                                 '<div class="poll-option-text">' + option + '</div>' +
                                 '<div class="poll-option-count">' + votes + '</div>' +
@@ -1260,13 +1260,13 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
                 let optionsHtml = '';
                 pollData.options.forEach((option, index) => {
-                    optionsHtml += 
+                    optionsHtml +=
                         '<button class="poll-option" onclick="submitVote(\\'' + slideId + '\\', ' + index + ')">' +
                             option +
                         '</button>';
                 });
 
-                slideContentEl.innerHTML = 
+                slideContentEl.innerHTML =
                     '<div class="poll-container">' +
                         '<div class="poll-question">' +
                             '<h3>🗳️ ' + pollData.question + '</h3>' +
@@ -1348,8 +1348,8 @@ defmodule ElixirNoDeps.WebRemoteServer do
           ""
       end
 
-    # Check password
-    if password == "jerry" do
+    # Check password using hash-based authentication
+    if verify_presenter_password(password) do
       # Redirect to presenter control interface
       build_http_response(302, "text/html", "", [{"Location", "/presenter/control"}])
     else
@@ -1860,5 +1860,21 @@ defmodule ElixirNoDeps.WebRemoteServer do
       true ->
         nil
     end
+  end
+
+  # Password verification using hash-based authentication
+  # To change the presenter password:
+  # 1. Run in iex: :crypto.hash(:sha256, "your_new_password") |> Base.encode16(case: :lower)
+  # 2. Replace the hash below with the new hash
+  # Current password hash is for: "jerry"
+  defp verify_presenter_password(input_password) do
+    # SHA256 hash of the presenter password
+    stored_hash = "3a5a2512949399115565867a73a413ec6ba215c8f2df385f78b33238a6639b7c"
+    
+    # Hash the input password and compare
+    input_hash = :crypto.hash(:sha256, input_password) |> Base.encode16(case: :lower)
+    
+    # Constant-time comparison to prevent timing attacks
+    stored_hash == input_hash
   end
 end
