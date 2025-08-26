@@ -373,6 +373,8 @@ defmodule ElixirNoDeps.WebRemoteServer do
             let currentSlide = 1;
             let totalSlides = 1;
             const SLIDE_WARNING_THRESHOLD = 40; // seconds
+            let slideStartTime = null;
+            let lastSlideNumber = null;
 
             async function updateSlideInfo() {
                 try {
@@ -381,6 +383,16 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
                     currentSlide = data.current_slide + 1; // Convert from 0-based
                     totalSlides = data.total_slides;
+
+                    // Check if we changed slides and reset client-side timer
+                    if (lastSlideNumber !== null && lastSlideNumber !== currentSlide) {
+                        slideStartTime = Date.now();
+                        console.log('Slide changed, resetting timer');
+                    } else if (slideStartTime === null) {
+                        // First load
+                        slideStartTime = Date.now();
+                    }
+                    lastSlideNumber = currentSlide;
 
                     document.getElementById('current-slide').textContent = currentSlide;
                     document.getElementById('total-slides').textContent = totalSlides;
@@ -402,9 +414,6 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     if (data.timing) {
                         document.getElementById('total-timer').textContent = formatTime(data.timing.total_time_seconds);
                         document.getElementById('slide-timer').textContent = formatTime(data.timing.current_slide_time_seconds);
-                        
-                        // Check if we need to show slide timing warning
-                        updateSlideTimingWarning(data.timing.current_slide_time_seconds);
                     }
 
                     // Update next slide preview
@@ -434,18 +443,39 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
 
-            function updateSlideTimingWarning(currentSlideSeconds) {
+            function updateSlideTimingWarning() {
+                if (slideStartTime === null) return;
+                
+                const now = Date.now();
+                const secondsOnSlide = Math.floor((now - slideStartTime) / 1000);
                 const body = document.body;
                 
-                if (currentSlideSeconds >= SLIDE_WARNING_THRESHOLD) {
+                if (secondsOnSlide >= SLIDE_WARNING_THRESHOLD) {
                     // Add warning class for red background
                     if (!body.classList.contains('slide-warning')) {
                         body.classList.add('slide-warning');
+                        console.log(`Warning activated: ${secondsOnSlide}s on slide`);
                     }
                 } else {
                     // Remove warning class to return to normal background
-                    body.classList.remove('slide-warning');
+                    if (body.classList.contains('slide-warning')) {
+                        body.classList.remove('slide-warning');
+                        console.log(`Warning cleared: ${secondsOnSlide}s on slide`);
+                    }
                 }
+            }
+
+            function updateClientSideTimer() {
+                if (slideStartTime === null) return;
+                
+                const now = Date.now();
+                const secondsOnSlide = Math.floor((now - slideStartTime) / 1000);
+                
+                // Update the slide timer with client-side calculation for immediate feedback
+                document.getElementById('slide-timer').textContent = formatTime(secondsOnSlide);
+                
+                // Update visual warning
+                updateSlideTimingWarning();
             }
 
             async function navigate(direction) {
@@ -453,7 +483,8 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     document.body.classList.add('loading');
                     await fetch(`/api/${direction}`, { method: 'POST' });
                     
-                    // Clear warning immediately on navigation (new slide = fresh timer)
+                    // Reset client-side timer immediately on navigation
+                    slideStartTime = Date.now();
                     document.body.classList.remove('slide-warning');
                     
                     setTimeout(updateSlideInfo, 100); // Small delay for state to update
@@ -477,7 +508,8 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     document.body.classList.add('loading');
                     await fetch(`/api/goto/${slideNum}`, { method: 'POST' });
                     
-                    // Clear warning immediately on navigation (new slide = fresh timer)
+                    // Reset client-side timer immediately on navigation
+                    slideStartTime = Date.now();
                     document.body.classList.remove('slide-warning');
                     
                     input.value = '';
@@ -499,6 +531,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
             // Initial load and periodic updates
             updateSlideInfo();
             setInterval(updateSlideInfo, 1000); // Refresh every 1 second for responsive timers
+            
+            // Client-side timer for immediate visual feedback
+            setInterval(updateClientSideTimer, 1000); // Update client-side timer every second
         </script>
     </body>
     </html>
