@@ -16,22 +16,46 @@ Wait for full attention before proceeding -->
 
 ---
 
+# Start Spicy?
+
+## 🌶️ Spicy Start 🌶️
+
+## Modern Software Engineering is broken
+
+![Hot Takes](priv/assets/HotTakes.webp)
+
+<!-- Speaker notes:
+[]
+Should we start this presentation on a spicy note?
+Yes we should
+
+Your Kubernetes cluster. Your microservices mesh. Redis. Message queues. Load balancers. Half your monitoring stack.
+[Pause]
+They're all solving problems that shouldn't exist in the first place."
+
+"For decades, we've scaled by piling on complexity. Microservices to handle load. Containers to manage the services. Meshes to manage the containers. Observability to understand the mesh.
+We've built skyscrapers of duct tape… and called it 'modern software engineering.'"
+
+[Make eye contact, pause after each item for impact]
+ -->
+
+---
+
 # Hello Cleveland! 👋
 
-## Christian Koch & Jeremy Searls
+# Elixir is all you need
 
-**Co-Presenting: ElixirNoDeps**
+## Christian Koch & Jeremy Searls
 
 ![Man Coding](priv/assets/hello-cleveland.png)
 
 <!-- Speaker notes: 
 [0:00-0:20] THE HOOK - Deliver with confidence and energy
-"I'm going to make a claim that will either get me laughed off this stage… or completely change how you think about backend architecture.
-Your Kubernetes cluster. Your microservices mesh. Redis. Message queues. Load balancers. Half your monitoring stack.
-[Pause]
-They're all solving problems that shouldn't exist in the first place."
 
-Make eye contact, pause after each item for impact -->
+Hi everyone I'm Christian and this is Jerry and we're here to make you mad.
+(possibly)
+
+-->
 
 ---
 
@@ -44,11 +68,28 @@ Make eye contact, pause after each item for impact -->
 **Let's explore what's possible with pure Elixir/OTP...**
 
 <!-- Speaker notes: 
-[0:20-0:45] THE PROBLEM - Build up the complexity narrative
-"For decades, we've scaled by piling on complexity. Microservices to handle load. Containers to manage the services. Meshes to manage the containers. Observability to understand the mesh.
-We've built skyscrapers of duct tape… and called it 'modern software engineering.'"
+[THE CONTRAST - Introduce the alternative]
+"But what if I told you there's a 30-year-old technology designed from day one to run millions of concurrent processes, self-heal, and scale effortlessly—without the Rube Goldberg machine?"
 
 Use the image to emphasize the complexity we're about to challenge -->
+
+---
+
+# Spoiler Alert:
+
+## It was Elixir all along
+
+![MIND. BLOWN.](priv/assets/mind-blown.gif)
+<!-- Speaker notes:
+
+[1:10-1:35] THE REVELATION - Connect to real-world success
+"That technology is Elixir, built on the Erlang VM—the same platform behind WhatsApp's billions of messages, Discord's real-time chat, and telecom systems that hit nine nines of uptime.
+While we were reinventing the wheel with Docker and Kubernetes, telecom solved this in the 80s."
+
+But first let's (breifly) look at what we can do with "naked" Elixir
+
+[GO FAST for next 5 slides]
+-->
 
 ---
 
@@ -64,8 +105,6 @@ Use the image to emphasize the complexity we're about to challenge -->
 - **No external libraries needed!**
 
 <!-- Speaker notes: 
-[0:45-1:10] THE CONTRAST - Introduce the alternative
-"But what if I told you there's a 30-year-old technology designed from day one to run millions of concurrent processes, self-heal, and scale effortlessly—without the Rube Goldberg machine?"
 
 This slide demonstrates the first example of built-in capabilities. Emphasize "No external libraries needed!" -->
 
@@ -100,9 +139,6 @@ Emphasize that these are production-ready modules, not toy implementations -->
 - **No Redis required!**
 
 <!-- Speaker notes: 
-[1:10-1:35] THE REVELATION - Connect to real-world success
-"That technology is Elixir, built on the Erlang VM—the same platform behind WhatsApp's billions of messages, Discord's real-time chat, and telecom systems that hit nine nines of uptime.
-While we were reinventing the wheel with Docker and Kubernetes, telecom solved this in the 80s."
 
 ETS is incredibly powerful - emphasize "No Redis required!" as this often surprises people -->
 
