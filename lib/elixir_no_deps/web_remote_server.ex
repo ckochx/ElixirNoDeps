@@ -1137,7 +1137,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     justify-content: center;
                     flex-wrap: wrap;
                 }
-                
+
                 .contact-link {
                     min-width: 200px;
                 }
@@ -1264,7 +1264,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
             <div class="audience-footer">
                 <p>🔄 This view updates automatically as the presenter advances slides</p>
                 <p>👋 Welcome to the presentation experience!</p>
-                
+
                 <div class="contact-section">
                     <h3>📞 Connect with the Presenters</h3>
                     <div class="contact-links">
@@ -1272,7 +1272,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                             💼 Jeremy Searls - LinkedIn
                         </a>
                         <a href="https://www.linkedin.com/in/ckochx/" target="_blank" class="contact-link">
-                            💼 Chris Koch - LinkedIn  
+                            💼 Chris Koch - LinkedIn
                         </a>
                         <a href="https://github.com/ckochx/ElixirNoDeps" target="_blank" class="contact-link repo-link">
                             🔗 View Source Code on GitHub
@@ -1431,6 +1431,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
     if verify_presenter_password(password) do
       # Create session token and redirect to presenter control interface
       session_token = create_presenter_session()
+
       build_http_response(302, "text/html", "", [
         {"Location", "/presenter/control"},
         {"Set-Cookie", "presenter_session=#{session_token}; Path=/; HttpOnly; SameSite=Strict"}
@@ -1955,7 +1956,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
           # Invalid or expired session, redirect to login
           build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
         end
-      
+
       _ ->
         # No session token, redirect to login
         build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
@@ -1968,7 +1969,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
     case String.split(request, "\r\n") do
       lines ->
         cookie_line = Enum.find(lines, &String.starts_with?(&1, "Cookie:"))
-        
+
         case cookie_line do
           "Cookie: " <> cookies ->
             # Parse cookies to find presenter_session
@@ -1980,7 +1981,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
               "presenter_session=" <> token -> {:ok, String.trim(token)}
               _ -> {:error, :not_found}
             end
-          
+
           _ ->
             {:error, :not_found}
         end
@@ -1991,13 +1992,13 @@ defmodule ElixirNoDeps.WebRemoteServer do
   defp create_presenter_session() do
     # Generate a secure random token
     token = :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
-    
+
     # Store session with 24 hour expiration
     expiry = DateTime.utc_now() |> DateTime.add(24, :hour)
-    
+
     # Store in ETS (reuse the poll storage table)
     :ets.insert(:poll_votes, {{"session", token}, expiry})
-    
+
     token
   end
 
@@ -2007,7 +2008,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
       [{_, expiry}] ->
         # Check if session hasn't expired
         DateTime.compare(DateTime.utc_now(), expiry) == :lt
-      
+
       [] ->
         false
     end
