@@ -26,7 +26,8 @@ Wait for full attention before proceeding -->
 
 <!-- Speaker notes:
 []
-Should we start this presentation on a spicy note?
+Jerry, should we start this presentation on a spicy note?
+
 Yes we should
 
 Your Kubernetes cluster. Your microservices mesh. Redis. Message queues. Load balancers. Half your monitoring stack.
@@ -41,31 +42,11 @@ We've built skyscrapers of duct tape… and called it 'modern software engineeri
 
 ---
 
-# Hello Cleveland! 👋
+# There is a better way
 
-# Elixir is all you need
-
-## Christian Koch & Jeremy Searls
-
-![Man Coding](priv/assets/hello-cleveland.png)
-
-<!-- Speaker notes: 
-[0:00-0:20] THE HOOK - Deliver with confidence and energy
-
-Hi everyone I'm Christian and this is Jerry and we're here to make you mad.
-(possibly)
-
--->
-
----
-
-# You Can Do A LOT With Just Elixir
-
-## No Dependencies Required
+## It's been here the whole time
 
 ![Elixir Applications](priv/assets/elixir-applications.png)
-
-**Let's explore what's possible with pure Elixir/OTP...**
 
 <!-- Speaker notes: 
 [THE CONTRAST - Introduce the alternative]
@@ -80,6 +61,9 @@ Use the image to emphasize the complexity we're about to challenge -->
 ## It was Elixir all along
 
 ![MIND. BLOWN.](priv/assets/mind-blown.gif)
+
+**Let's explore what's possible with pure Elixir/OTP...**
+
 <!-- Speaker notes:
 
 [1:10-1:35] THE REVELATION - Connect to real-world success
@@ -88,12 +72,33 @@ While we were reinventing the wheel with Docker and Kubernetes, telecom solved t
 
 But first let's (breifly) look at what we can do with "naked" Elixir
 
-[GO FAST for next 5 slides]
 -->
 
 ---
 
-# SSH & SSH Tunnels
+# Hello Cleveland! 👋
+
+# Elixir is all you need
+
+## Christian Koch & Jeremy Searls
+
+![Man Coding](priv/assets/hello-cleveland.png)
+
+<!-- Speaker notes:
+[0:00-0:20] THE HOOK - Deliver with confidence and energy
+
+Hi everyone I'm Christian and this is Jerry and we're here to make you mad
+(possibly)
+with our talk titled "Elixir is all you need"
+
+[GO FAST for next 5 slides: Jerry, CK, Jerry, CK, Jerry]
+-->
+
+---
+
+# You Can Do A LOT With Just Elixir
+
+## No Dependencies Required
 
 ## Built-in SSH Support
 
@@ -258,11 +263,62 @@ The 80/20 rule is key here - most people only use a small fraction of what libra
 
 ---
 
+# Libraries: Encapsulation vs. Obfuscation
+
+## The Tradeoff
+
+- **Encapsulation**: Hiding complexity
+- **Obfuscation**: Hiding what's happening**
+- **Transparency**: See the code you're using
+- **Control**: Understand your dependencies
+
+## Not Every Library is Unnecessary
+
+- **Postgrex**: Very specific, complex problem
+- **Ecto**: Modular database abstraction
+- **But could you write SQL directly?**
+
+<!-- Speaker notes:
+"Well a library is both encapsulation and obfuscation. Not to suggest that every library is unnecessary.
+Some are very specific or solve a complex problem in a modular fashion, for example postgrex.
+But could you write an app with DB access and not use Ecto? Only write SQL? Maybe. It's something to consider."
+
+This shows we're not being dogmatic - some libraries are genuinely valuable -->
+
+---
+
+# The Orphanage Problem
+
+## Repo Abandonment Reality
+
+- **Timex author largely moved on from Elixir**
+- **Fewer open source contributors**
+- **More disincentive to contribute**
+- **Time pressure and social issues**
+
+## Across Software Engineering
+
+- **Not just an Elixir problem**
+- **Industry-wide trend**
+- **Corporate consolidation impact**
+
+<!-- Speaker notes:
+This is the harsh reality check.
+"Because Timex solved such a necessary problem it is now a pervasive transient dependency.
+And that is unfortunate since the author, as I understand it, has largely moved on from Elixir.
+Repo abandonment/orphanage is a real issue. Not just in Elixir, but across software engineering. There are fewer open source contributors. There is more disincentive to actually contribute due to both time pressure and social issues…"
+
+Make this personal - this affects everyone in the room -->
+
+---
+
 # 🌶️ Modern Problems, Modern Solutions
 
 ## Copy the Source Directly
 
 **Use an LLM to import dependency code into your codebase**
+
+## This is the part where we really make you mad
 
 - **Selective inclusion**: Only what you need
 - **Full control**: No external dependencies
@@ -330,31 +386,6 @@ Show the code, emphasize "That's maybe 10% of what Timex does!" -->
 
 ---
 
-# The Orphanage Problem
-
-## Repo Abandonment Reality
-
-- **Timex author largely moved on from Elixir**
-- **Fewer open source contributors**
-- **More disincentive to contribute**
-- **Time pressure and social issues**
-
-## Across Software Engineering
-
-- **Not just an Elixir problem**
-- **Industry-wide trend**
-- **Corporate consolidation impact**
-
-<!-- Speaker notes: 
-This is the harsh reality check.
-"Because Timex solved such a necessary problem it is now a pervasive transient dependency. 
-And that is unfortunate since the author, as I understand it, has largely moved on from Elixir. 
-Repo abandonment/orphanage is a real issue. Not just in Elixir, but across software engineering. There are fewer open source contributors. There is more disincentive to actually contribute due to both time pressure and social issues…"
-
-Make this personal - this affects everyone in the room -->
-
----
-
 # Modern Solutions for Modern Problems
 
 ## Copy Open Source Into Your Project
@@ -393,30 +424,6 @@ This addresses the ethical concerns - we're not stealing, we're adapting -->
 One of the core principals of Elixir is: Be explicit. Have your code tell you what it does. Don't rely on indirection or magic."
 
 Connect this back to Elixir's philosophy -->
-
----
-
-# Libraries: Encapsulation vs. Obfuscation
-
-## The Tradeoff
-
-- **Encapsulation**: Hiding complexity
-- **Obfuscation**: Hiding what's happening**
-- **Transparency**: See the code you're using
-- **Control**: Understand your dependencies
-
-## Not Every Library is Unnecessary
-
-- **Postgrex**: Very specific, complex problem
-- **Ecto**: Modular database abstraction
-- **But could you write SQL directly?**
-
-<!-- Speaker notes: 
-"Well a library is both encapsulation and obfuscation. Not to suggest that every library is unnecessary. 
-Some are very specific or solve a complex problem in a modular fashion, for example postgrex. 
-But could you write an app with DB access and not use Ecto? Only write SQL? Maybe. It's something to consider."
-
-This shows we're not being dogmatic - some libraries are genuinely valuable -->
 
 ---
 
@@ -526,28 +533,6 @@ This is where you transition to the live demo. The audience has been seeing this
 
 ---
 
-# Live Demo: ElixirNoDeps
-
-## What We Built
-
-- **Terminal presentation tool**
-- **HTTP server capabilities**
-- **Image processing**
-- **Zero external dependencies**
-
-**Everything you see is running in Elixir!**
-
-<!-- Speaker notes: 
-During the demo, emphasize each point as you show it:
-- Show the terminal presentation (they've been seeing it)
-- Show the HTTP server (maybe open the remote control interface)
-- Show image processing (the ASCII art generation)
-- Emphasize "Zero external dependencies" - this is the key message
-
-Make sure the demo flows naturally from the presentation -->
-
----
-
 # Key Takeaways
 
 ## 1. **You Can Do More Than You Think**
@@ -628,7 +613,11 @@ Emphasize "This Presentation: Running live in Elixir!" - it's still your proof o
 
 # Final Thoughts
 
-**"Simplicity is the ultimate sophistication"**
+**"Simplicity is the ultimate sophistication -- Leonardo da Vinci (apocryphal)"**
+
+**"Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it’s worth it in the end because once you get there, you can move mountains -- Steve Jobs"**
+
+**"Simplicity is a prerequisite for reliability -- Edsger W. Dijkstra"**
 
 ElixirNoDeps proves that powerful tools don't need complex dependencies.
 
