@@ -120,7 +120,7 @@ But first let's (breifly) look at what we can do with "naked" Elixir
 
 **💼 Connect with us:**
 
-- **Chris Koch**: ckochx@icloud.com
+- **Christian Koch**: ckochx@gmail.com
 - **Jeremy Searls**: @jersearls on every platform
 - **Source Code**: https://github.com/ckochx/ElixirNoDeps
 
@@ -629,7 +629,6 @@ This addresses the ethical concerns - we're not stealing, we're adapting -->
 
 **"Be explicit"** - Have your code tell you what it does
 
-<<<<<<< Updated upstream
 <!-- poll:
 question: "What's your preferred development approach?"
 options:

@@ -1272,7 +1272,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                             💼 Jeremy Searls - LinkedIn
                         </a>
                         <a href="https://www.linkedin.com/in/ckochx/" target="_blank" class="contact-link">
-                            💼 Chris Koch - LinkedIn
+                            💼 Christian Koch - LinkedIn
                         </a>
                         <a href="https://github.com/ckochx/ElixirNoDeps" target="_blank" class="contact-link repo-link">
                             🔗 View Source Code on GitHub
