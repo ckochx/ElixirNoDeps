@@ -58,7 +58,19 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
     case {method, path} do
       {"GET", "/"} ->
+        serve_role_selection()
+
+      {"GET", "/presenter"} ->
+        serve_presenter_login()
+
+      {"POST", "/presenter/login"} ->
+        handle_presenter_login(request)
+
+      {"GET", "/presenter/control"} ->
         serve_controller_interface()
+
+      {"GET", "/audience"} ->
+        serve_audience_interface()
 
       {"GET", "/api/status"} ->
         serve_presentation_status()
@@ -542,6 +554,684 @@ defmodule ElixirNoDeps.WebRemoteServer do
     build_http_response(200, "text/html", body)
   end
 
+  defp serve_role_selection do
+    body = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Select Your Role</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .container {
+                text-align: center;
+                max-width: 500px;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 15px;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.9;
+            }
+            
+            .role-cards {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-top: 40px;
+            }
+            
+            .role-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px 20px;
+                text-decoration: none;
+                color: white;
+                transition: all 0.3s ease;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                cursor: pointer;
+            }
+            
+            .role-card:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-5px);
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+            
+            .role-icon {
+                font-size: 4rem;
+                margin-bottom: 20px;
+                display: block;
+            }
+            
+            .role-title {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+            
+            .role-description {
+                font-size: 1rem;
+                opacity: 0.8;
+                line-height: 1.4;
+            }
+            
+            @media (max-width: 480px) {
+                .role-cards {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+                
+                .header h1 {
+                    font-size: 2rem;
+                }
+                
+                .role-card {
+                    padding: 30px 20px;
+                }
+                
+                .role-icon {
+                    font-size: 3rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎯 Choose Your Role</h1>
+                <p>Join the presentation experience</p>
+            </div>
+            
+            <div class="role-cards">
+                <a href="/presenter" class="role-card">
+                    <span class="role-icon">🎤</span>
+                    <div class="role-title">Presenter</div>
+                    <div class="role-description">
+                        Control the presentation with speaker notes and timing
+                    </div>
+                </a>
+                
+                <a href="/audience" class="role-card">
+                    <span class="role-icon">👥</span>
+                    <div class="role-title">Audience</div>
+                    <div class="role-description">
+                        Follow along with the live presentation slides
+                    </div>
+                </a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    build_http_response(200, "text/html", body)
+  end
+
+  defp serve_presenter_login do
+    body = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Presenter Login</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .login-container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                text-align: center;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                max-width: 400px;
+                width: 100%;
+            }
+            
+            .login-header {
+                margin-bottom: 30px;
+            }
+            
+            .login-header h1 {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+            
+            .login-header p {
+                opacity: 0.8;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+                text-align: left;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 15px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                font-size: 1.1rem;
+            }
+            
+            .form-group input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 15px;
+                background: rgba(76, 175, 80, 0.3);
+                border: 2px solid #4caf50;
+                border-radius: 10px;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .login-btn:hover {
+                background: rgba(76, 175, 80, 0.5);
+                transform: translateY(-2px);
+            }
+            
+            .back-link {
+                margin-top: 20px;
+                display: block;
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+            }
+            
+            .back-link:hover {
+                color: white;
+            }
+            
+            .error {
+                background: rgba(220, 53, 69, 0.2);
+                border: 1px solid #dc3545;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 20px;
+                color: #ff6b6b;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🎤 Presenter Access</h1>
+                <p>Enter the presenter password to control the presentation</p>
+            </div>
+            
+            <form method="POST" action="/presenter/login">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter presenter password" required autofocus>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    🔓 Access Presenter Controls
+                </button>
+            </form>
+            
+            <a href="/" class="back-link">← Back to role selection</a>
+        </div>
+    </body>
+    </html>
+    """
+
+    build_http_response(200, "text/html", body)
+  end
+
+  defp serve_audience_interface do
+    body = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Live Presentation - Audience View</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                color: white;
+                min-height: 100vh;
+                padding: 20px;
+            }
+            
+            .audience-container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            
+            .audience-header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .audience-header h1 {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+            
+            .presentation-info {
+                opacity: 0.8;
+                font-size: 1.1rem;
+            }
+            
+            .slide-display {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                min-height: 400px;
+            }
+            
+            .slide-header {
+                text-align: center;
+                margin-bottom: 25px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .slide-counter {
+                font-size: 1rem;
+                opacity: 0.8;
+                margin-bottom: 10px;
+            }
+            
+            .slide-title {
+                font-size: 2rem;
+                font-weight: bold;
+                color: #ffd700;
+            }
+            
+            .slide-content {
+                font-size: 1.2rem;
+                line-height: 1.6;
+                white-space: pre-wrap;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 25px;
+                border-radius: 10px;
+                font-family: 'Monaco', 'Consolas', monospace;
+            }
+            
+            .connection-status {
+                text-align: center;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-size: 1.1rem;
+            }
+            
+            .status-connected {
+                background: rgba(76, 175, 80, 0.2);
+                border: 1px solid #4caf50;
+                color: #90EE90;
+            }
+            
+            .status-disconnected {
+                background: rgba(220, 53, 69, 0.2);
+                border: 1px solid #dc3545;
+                color: #ff6b6b;
+            }
+            
+            .audience-footer {
+                text-align: center;
+                margin-top: 30px;
+                opacity: 0.7;
+            }
+            
+            .loading {
+                text-align: center;
+                opacity: 0.7;
+                font-style: italic;
+            }
+            
+            @media (max-width: 768px) {
+                .slide-title {
+                    font-size: 1.5rem;
+                }
+                
+                .slide-content {
+                    font-size: 1rem;
+                    padding: 20px;
+                }
+                
+                .slide-display {
+                    padding: 20px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="audience-container">
+            <div class="audience-header">
+                <h1>👥 Live Presentation</h1>
+                <div class="presentation-info">
+                    <span id="presentation-title">Loading presentation...</span>
+                </div>
+            </div>
+            
+            <div id="connection-status" class="connection-status status-disconnected">
+                🔄 Connecting to presentation...
+            </div>
+            
+            <div class="slide-display">
+                <div class="slide-header">
+                    <div class="slide-counter">
+                        Slide <span id="current-slide">-</span> of <span id="total-slides">-</span>
+                    </div>
+                    <div id="slide-title" class="slide-title">Loading...</div>
+                </div>
+                
+                <div id="slide-content" class="slide-content loading">
+                    Waiting for presentation to start...
+                </div>
+            </div>
+            
+            <div class="audience-footer">
+                <p>🔄 This view updates automatically as the presenter advances slides</p>
+                <p>👋 Welcome to the presentation experience!</p>
+            </div>
+        </div>
+
+        <script>
+            let currentSlide = 1;
+            let isConnected = false;
+            
+            async function updateAudienceView() {
+                try {
+                    const response = await fetch('/api/current');
+                    const data = await response.json();
+                    
+                    // Update connection status
+                    if (!isConnected) {
+                        isConnected = true;
+                        const statusEl = document.getElementById('connection-status');
+                        statusEl.textContent = '✅ Connected to live presentation';
+                        statusEl.className = 'connection-status status-connected';
+                    }
+                    
+                    currentSlide = data.current_slide + 1; // Convert from 0-based
+                    
+                    // Update presentation info
+                    document.getElementById('presentation-title').textContent = data.presentation_title || 'Live Presentation';
+                    document.getElementById('current-slide').textContent = currentSlide;
+                    document.getElementById('total-slides').textContent = data.total_slides;
+                    document.getElementById('slide-title').textContent = data.title || 'Untitled Slide';
+                    document.getElementById('slide-content').textContent = data.content || 'No content available';
+                    
+                    // Remove loading class
+                    document.getElementById('slide-content').classList.remove('loading');
+                    
+                } catch (error) {
+                    console.error('Failed to update audience view:', error);
+                    
+                    // Update connection status
+                    isConnected = false;
+                    const statusEl = document.getElementById('connection-status');
+                    statusEl.textContent = '❌ Connection lost - attempting to reconnect...';
+                    statusEl.className = 'connection-status status-disconnected';
+                    
+                    // Show error in slide content
+                    document.getElementById('slide-title').textContent = 'Connection Error';
+                    document.getElementById('slide-content').textContent = 'Unable to connect to presentation. Please check your connection.';
+                    document.getElementById('slide-content').classList.add('loading');
+                }
+            }
+            
+            // Initial load and periodic updates
+            updateAudienceView();
+            setInterval(updateAudienceView, 2000); // Update every 2 seconds
+        </script>
+    </body>
+    </html>
+    """
+
+    build_http_response(200, "text/html", body)
+  end
+
+  defp handle_presenter_login(request) do
+    # Extract the POST body from the request
+    request_parts = String.split(request, "\r\n\r\n", parts: 2)
+    
+    body = case request_parts do
+      [_headers, post_body] -> post_body
+      _ -> ""
+    end
+    
+    # Parse form data (simple URL-encoded parsing)
+    password = case String.contains?(body, "password=") do
+      true ->
+        body
+        |> String.split("&")
+        |> Enum.find(&String.starts_with?(&1, "password="))
+        |> case do
+          "password=" <> pass -> URI.decode_www_form(pass)
+          nil -> ""
+        end
+      false -> ""
+    end
+    
+    # Check password
+    if password == "jerry" do
+      # Redirect to presenter control interface
+      build_http_response(302, "text/html", "", [{"Location", "/presenter/control"}])
+    else
+      # Show login page with error
+      serve_presenter_login_error()
+    end
+  end
+
+  defp serve_presenter_login_error do
+    body = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Presenter Login</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .login-container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                text-align: center;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                max-width: 400px;
+                width: 100%;
+            }
+            
+            .login-header {
+                margin-bottom: 30px;
+            }
+            
+            .login-header h1 {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+            
+            .login-header p {
+                opacity: 0.8;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+                text-align: left;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 15px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                font-size: 1.1rem;
+            }
+            
+            .form-group input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 15px;
+                background: rgba(76, 175, 80, 0.3);
+                border: 2px solid #4caf50;
+                border-radius: 10px;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .login-btn:hover {
+                background: rgba(76, 175, 80, 0.5);
+                transform: translateY(-2px);
+            }
+            
+            .back-link {
+                margin-top: 20px;
+                display: block;
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+            }
+            
+            .back-link:hover {
+                color: white;
+            }
+            
+            .error {
+                background: rgba(220, 53, 69, 0.2);
+                border: 1px solid #dc3545;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                color: #ff6b6b;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🎤 Presenter Access</h1>
+                <p>Enter the presenter password to control the presentation</p>
+            </div>
+            
+            <div class="error">
+                ❌ Incorrect password. Please try again.
+            </div>
+            
+            <form method="POST" action="/presenter/login">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter presenter password" required autofocus>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    🔓 Access Presenter Controls
+                </button>
+            </form>
+            
+            <a href="/" class="back-link">← Back to role selection</a>
+        </div>
+    </body>
+    </html>
+    """
+
+    build_http_response(200, "text/html", body)
+  end
+
   defp serve_current_slide_info do
     case get_current_presentation_info() do
       {:ok, info} ->
@@ -687,25 +1377,35 @@ defmodule ElixirNoDeps.WebRemoteServer do
     end
   end
 
-  defp build_http_response(status_code, content_type, body) do
+  defp build_http_response(status_code, content_type, body, headers \\ []) do
     status_text =
       case status_code do
         200 -> "OK"
+        302 -> "Found"
         400 -> "Bad Request"
         404 -> "Not Found"
         500 -> "Internal Server Error"
       end
 
     content_length = byte_size(body)
+    
+    # Build custom headers
+    custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r" end)
+    
+    default_headers = [
+      "Content-Type: #{content_type}\r",
+      "Content-Length: #{content_length}\r",
+      "Connection: close\r",
+      "Access-Control-Allow-Origin: *\r",
+      "Access-Control-Allow-Methods: GET, POST, OPTIONS\r",
+      "Access-Control-Allow-Headers: Content-Type\r"
+    ]
+    
+    all_headers = custom_headers ++ default_headers
 
     """
     HTTP/1.1 #{status_code} #{status_text}\r
-    Content-Type: #{content_type}\r
-    Content-Length: #{content_length}\r
-    Connection: close\r
-    Access-Control-Allow-Origin: *\r
-    Access-Control-Allow-Methods: GET, POST, OPTIONS\r
-    Access-Control-Allow-Headers: Content-Type\r
+    #{Enum.join(all_headers, "")}
     \r
     #{body}
     """
