@@ -88,16 +88,33 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   def init(%Presentation{} = presentation) do
     # Configure terminal for raw input mode
     configure_terminal()
-    {:ok, presentation}
+
+    # Initialize timing state
+    now = DateTime.utc_now()
+
+    presentation_with_timing = %{
+      presentation
+      | metadata:
+          Map.merge(presentation.metadata || %{}, %{
+            presentation_start_time: now,
+            slide_start_time: now,
+            slide_timings: %{}
+          })
+    }
+
+    {:ok, presentation_with_timing}
   end
 
   @impl true
   def handle_call({:navigate, command}, _from, presentation) do
     case process_navigation_command(command, presentation) do
       {:ok, new_presentation} ->
+        # Update slide timing if we changed slides
+        updated_presentation = update_slide_timing(presentation, new_presentation)
+
         # Re-render the terminal when navigation succeeds (for web remote control)
-        Renderer.render_slide(new_presentation)
-        {:reply, :ok, new_presentation}
+        Renderer.render_slide(updated_presentation)
+        {:reply, :ok, updated_presentation}
 
       {:quit} ->
         {:stop, :normal, :quit, presentation}
@@ -361,5 +378,55 @@ defmodule ElixirNoDeps.Presenter.Navigator do
     Terminal.clear_screen()
     # Flush any remaining output
     IO.puts("")
+  end
+
+  # Timing helper functions
+
+  defp update_slide_timing(old_presentation, new_presentation) do
+    # Only update timing if we actually changed slides
+    if old_presentation.current_slide != new_presentation.current_slide do
+      now = DateTime.utc_now()
+      old_metadata = old_presentation.metadata || %{}
+
+      # Calculate time spent on previous slide
+      slide_start_time = Map.get(old_metadata, :slide_start_time, now)
+      time_on_slide = DateTime.diff(now, slide_start_time, :second)
+
+      # Update slide timings map
+      slide_timings = Map.get(old_metadata, :slide_timings, %{})
+      updated_timings = Map.put(slide_timings, old_presentation.current_slide, time_on_slide)
+
+      # Update metadata with new timing info
+      updated_metadata =
+        Map.merge(old_metadata, %{
+          slide_start_time: now,
+          slide_timings: updated_timings
+        })
+
+      %{new_presentation | metadata: updated_metadata}
+    else
+      new_presentation
+    end
+  end
+
+  @doc """
+  Gets timing information for the current presentation.
+  """
+  @spec get_timing_info(Presentation.t()) :: map()
+  def get_timing_info(presentation) do
+    metadata = presentation.metadata || %{}
+    now = DateTime.utc_now()
+
+    presentation_start = Map.get(metadata, :presentation_start_time, now)
+    slide_start = Map.get(metadata, :slide_start_time, now)
+
+    total_time = DateTime.diff(now, presentation_start, :second)
+    current_slide_time = DateTime.diff(now, slide_start, :second)
+
+    %{
+      total_time_seconds: total_time,
+      current_slide_time_seconds: current_slide_time,
+      slide_timings: Map.get(metadata, :slide_timings, %{})
+    }
   end
 end

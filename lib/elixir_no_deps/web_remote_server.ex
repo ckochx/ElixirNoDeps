@@ -234,6 +234,54 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 font-weight: bold;
             }
 
+            .timing-info {
+                background: rgba(0, 0, 0, 0.2);
+                padding: 15px;
+                border-radius: 8px;
+                margin: 15px 0;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .timer {
+                color: #ffa500;
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+
+            .timer-label {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.9rem;
+                margin-bottom: 5px;
+            }
+
+            .next-slide-preview {
+                background: rgba(0, 0, 0, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .next-slide-preview h3 {
+                color: #90EE90;
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            }
+
+            .next-slide-preview .preview-content {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                border-radius: 5px;
+                font-family: 'Monaco', 'Consolas', monospace;
+                font-size: 0.9rem;
+                line-height: 1.3;
+                max-height: 150px;
+                overflow-y: auto;
+            }
+
             .loading {
                 opacity: 0.7;
                 pointer-events: none;
@@ -277,6 +325,25 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         <h3>📝 Speaker Notes</h3>
                         <div id="notes-content"></div>
                     </div>
+
+                    <div class="timing-info">
+                        <div>
+                            <div class="timer-label">Total Time</div>
+                            <div id="total-timer" class="timer">00:00</div>
+                        </div>
+                        <div>
+                            <div class="timer-label">Current Slide</div>
+                            <div id="slide-timer" class="timer">00:00</div>
+                        </div>
+                    </div>
+
+                    <div id="next-slide-preview" class="next-slide-preview" style="display: none;">
+                        <h3>🔮 Next Slide Preview</h3>
+                        <div class="preview-content">
+                            <div id="next-slide-title" style="font-weight: bold; margin-bottom: 8px;"></div>
+                            <div id="next-slide-content"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -314,6 +381,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     document.getElementById('slide-title').textContent = data.title || 'Untitled Slide';
                     document.getElementById('slide-content').textContent = data.content || 'No content';
 
+                    // Update speaker notes
                     const notesEl = document.getElementById('speaker-notes');
                     const notesContent = document.getElementById('notes-content');
 
@@ -322,6 +390,22 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         notesEl.style.display = 'block';
                     } else {
                         notesEl.style.display = 'none';
+                    }
+
+                    // Update timing information
+                    if (data.timing) {
+                        document.getElementById('total-timer').textContent = formatTime(data.timing.total_time_seconds);
+                        document.getElementById('slide-timer').textContent = formatTime(data.timing.current_slide_time_seconds);
+                    }
+
+                    // Update next slide preview
+                    const nextSlideEl = document.getElementById('next-slide-preview');
+                    if (data.next_slide && (data.next_slide.title || data.next_slide.content)) {
+                        document.getElementById('next-slide-title').textContent = data.next_slide.title || 'Untitled';
+                        document.getElementById('next-slide-content').textContent = data.next_slide.content || 'No content';
+                        nextSlideEl.style.display = 'block';
+                    } else {
+                        nextSlideEl.style.display = 'none';
                     }
 
                     // Update button states
@@ -333,6 +417,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     document.getElementById('slide-title').textContent = 'Connection Error';
                     document.getElementById('slide-content').textContent = 'Failed to connect to presentation server.';
                 }
+            }
+
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
 
             async function navigate(direction) {
@@ -377,7 +467,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
             // Initial load and periodic updates
             updateSlideInfo();
-            setInterval(updateSlideInfo, 2000); // Refresh every 2 seconds
+            setInterval(updateSlideInfo, 1000); // Refresh every 1 second for responsive timers
         </script>
     </body>
     </html>
@@ -503,6 +593,8 @@ defmodule ElixirNoDeps.WebRemoteServer do
         _pid ->
           presentation = ElixirNoDeps.Presenter.Navigator.get_presentation()
           current_slide = ElixirNoDeps.Presenter.Presentation.current_slide(presentation)
+          next_slide = ElixirNoDeps.Presenter.Presentation.next_slide_preview(presentation)
+          timing_info = ElixirNoDeps.Presenter.Navigator.get_timing_info(presentation)
 
           info = %{
             current_slide: presentation.current_slide,
@@ -510,7 +602,15 @@ defmodule ElixirNoDeps.WebRemoteServer do
             presentation_title: presentation.title,
             title: if(current_slide, do: current_slide.title, else: nil),
             content: if(current_slide, do: current_slide.content, else: nil),
-            speaker_notes: if(current_slide, do: current_slide.speaker_notes, else: nil)
+            speaker_notes: if(current_slide, do: current_slide.speaker_notes, else: nil),
+            next_slide: %{
+              title: if(next_slide, do: next_slide.title, else: nil),
+              content: if(next_slide, do: next_slide.content, else: nil)
+            },
+            timing: %{
+              total_time_seconds: timing_info.total_time_seconds,
+              current_slide_time_seconds: timing_info.current_slide_time_seconds
+            }
           }
 
           {:ok, info}

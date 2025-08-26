@@ -124,4 +124,18 @@ defmodule ElixirNoDeps.Presenter.Presentation do
   """
   @spec has_prev?(t()) :: boolean()
   def has_prev?(%__MODULE__{current_slide: current}), do: current > 0
+
+  @doc """
+  Returns the next slide or nil if at the end.
+  """
+  @spec next_slide_preview(t()) :: Slide.t() | nil
+  def next_slide_preview(%__MODULE__{slides: slides, current_slide: current}) do
+    next_index = current + 1
+
+    if next_index < length(slides) do
+      Enum.at(slides, next_index)
+    else
+      nil
+    end
+  end
 end
