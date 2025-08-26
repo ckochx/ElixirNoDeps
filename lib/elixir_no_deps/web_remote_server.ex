@@ -91,6 +91,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
       {"GET", "/api/current"} ->
         serve_current_slide_info()
 
+      {"POST", "/api/poll/vote"} ->
+        handle_poll_vote(request)
+
+      {"GET", "/api/poll/results/" <> slide_id} ->
+        serve_poll_results(slide_id)
+
       _ ->
         serve_error(404, "Not Found")
     end
@@ -299,6 +305,83 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 overflow-y: auto;
             }
 
+            /* Poll results styles */
+            .poll-results {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 20px;
+                border-radius: 10px;
+                margin-top: 20px;
+                border: 2px solid #f39c12;
+            }
+
+            .poll-results h3 {
+                color: #f39c12;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .poll-question-display {
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #ecf0f1;
+                text-align: center;
+                font-size: 1.1rem;
+            }
+
+            .poll-results-chart {
+                margin-bottom: 15px;
+            }
+
+            .poll-option-result {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .poll-option-text {
+                flex: 1;
+                margin-right: 15px;
+                font-weight: 500;
+                color: #ecf0f1;
+            }
+
+            .poll-option-count {
+                margin-right: 15px;
+                color: #3498db;
+                font-weight: bold;
+                min-width: 40px;
+                text-align: right;
+            }
+
+            .poll-option-percentage {
+                margin-right: 10px;
+                color: #95a5a6;
+                min-width: 45px;
+                text-align: right;
+                font-size: 0.9rem;
+            }
+
+            .poll-option-bar {
+                height: 20px;
+                background: linear-gradient(90deg, #3498db, #2980b9);
+                border-radius: 10px;
+                transition: width 0.5s ease;
+                min-width: 3px;
+                width: 100px;
+            }
+
+            .poll-summary {
+                text-align: center;
+                color: #95a5a6;
+                font-style: italic;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
             .loading {
                 opacity: 0.7;
                 pointer-events: none;
@@ -360,6 +443,13 @@ defmodule ElixirNoDeps.WebRemoteServer do
                             <div id="next-slide-title" style="font-weight: bold; margin-bottom: 8px;"></div>
                             <div id="next-slide-content"></div>
                         </div>
+                    </div>
+
+                    <div id="poll-results" class="poll-results" style="display: none;">
+                        <h3>📊 Live Poll Results</h3>
+                        <div id="poll-question-display" class="poll-question-display"></div>
+                        <div id="poll-results-chart" class="poll-results-chart"></div>
+                        <div id="poll-summary" class="poll-summary">Total votes: 0</div>
                     </div>
                 </div>
             </div>
@@ -438,6 +528,15 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         nextSlideEl.style.display = 'none';
                     }
 
+                    // Update poll results if this is a poll slide
+                    const pollResultsEl = document.getElementById('poll-results');
+                    if (data.poll_data && data.poll_data.question) {
+                        updatePollResults(data.poll_data, currentSlide.toString());
+                        pollResultsEl.style.display = 'block';
+                    } else {
+                        pollResultsEl.style.display = 'none';
+                    }
+
                     // Update button states
                     document.getElementById('prev-btn').disabled = currentSlide <= 1;
                     document.getElementById('next-btn').disabled = currentSlide >= totalSlides;
@@ -457,11 +556,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
             function updateSlideTimingWarning() {
                 if (slideStartTime === null) return;
-                
+
                 const now = Date.now();
                 const secondsOnSlide = Math.floor((now - slideStartTime) / 1000);
                 const body = document.body;
-                
+
                 if (secondsOnSlide >= SLIDE_WARNING_THRESHOLD) {
                     // Add warning class for red background
                     if (!body.classList.contains('slide-warning')) {
@@ -479,13 +578,13 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
             function updateClientSideTimer() {
                 if (slideStartTime === null) return;
-                
+
                 const now = Date.now();
                 const secondsOnSlide = Math.floor((now - slideStartTime) / 1000);
-                
+
                 // Update the slide timer with client-side calculation for immediate feedback
                 document.getElementById('slide-timer').textContent = formatTime(secondsOnSlide);
-                
+
                 // Update visual warning
                 updateSlideTimingWarning();
             }
@@ -494,11 +593,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 try {
                     document.body.classList.add('loading');
                     await fetch(`/api/${direction}`, { method: 'POST' });
-                    
+
                     // Reset client-side timer immediately on navigation
                     slideStartTime = Date.now();
                     document.body.classList.remove('slide-warning');
-                    
+
                     setTimeout(updateSlideInfo, 100); // Small delay for state to update
                 } catch (error) {
                     console.error('Navigation failed:', error);
@@ -519,11 +618,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 try {
                     document.body.classList.add('loading');
                     await fetch(`/api/goto/${slideNum}`, { method: 'POST' });
-                    
+
                     // Reset client-side timer immediately on navigation
                     slideStartTime = Date.now();
                     document.body.classList.remove('slide-warning');
-                    
+
                     input.value = '';
                     setTimeout(updateSlideInfo, 100);
                 } catch (error) {
@@ -540,10 +639,45 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 }
             });
 
+            async function updatePollResults(pollData, slideId) {
+                try {
+                    const response = await fetch(`/api/poll/results/${slideId}`);
+                    const results = await response.json();
+
+                    // Update poll question display
+                    document.getElementById('poll-question-display').textContent = pollData.question;
+
+                    const chartEl = document.getElementById('poll-results-chart');
+                    const totalVotes = results.total_votes || 0;
+
+                    let chartHtml = '';
+                    pollData.options.forEach((option, index) => {
+                        const votes = results.results[index] || 0;
+                        const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+                        const barWidth = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
+                        chartHtml += 
+                            '<div class="poll-option-result">' +
+                                '<div class="poll-option-text">' + option + '</div>' +
+                                '<div class="poll-option-count">' + votes + '</div>' +
+                                '<div class="poll-option-percentage">' + percentage + '%</div>' +
+                                '<div class="poll-option-bar" style="width: ' + barWidth + '%;"></div>' +
+                            '</div>';
+                    });
+
+                    chartEl.innerHTML = chartHtml;
+                    document.getElementById('poll-summary').textContent = 'Total votes: ' + totalVotes;
+
+                } catch (error) {
+                    console.error('Failed to update poll results:', error);
+                    document.getElementById('poll-results-chart').innerHTML = '<div style="color: #e74c3c; text-align: center;">Failed to load poll results</div>';
+                }
+            }
+
             // Initial load and periodic updates
             updateSlideInfo();
             setInterval(updateSlideInfo, 1000); // Refresh every 1 second for responsive timers
-            
+
             // Client-side timer for immediate visual feedback
             setInterval(updateClientSideTimer, 1000); // Update client-side timer every second
         </script>
@@ -568,7 +702,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 padding: 0;
                 box-sizing: border-box;
             }
-            
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -579,33 +713,33 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 align-items: center;
                 padding: 20px;
             }
-            
+
             .container {
                 text-align: center;
                 max-width: 500px;
             }
-            
+
             .header {
                 margin-bottom: 40px;
             }
-            
+
             .header h1 {
                 font-size: 2.5rem;
                 margin-bottom: 15px;
             }
-            
+
             .header p {
                 font-size: 1.2rem;
                 opacity: 0.9;
             }
-            
+
             .role-cards {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 30px;
                 margin-top: 40px;
             }
-            
+
             .role-card {
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
@@ -617,45 +751,45 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 border: 2px solid rgba(255, 255, 255, 0.2);
                 cursor: pointer;
             }
-            
+
             .role-card:hover {
                 background: rgba(255, 255, 255, 0.2);
                 transform: translateY(-5px);
                 border-color: rgba(255, 255, 255, 0.4);
             }
-            
+
             .role-icon {
                 font-size: 4rem;
                 margin-bottom: 20px;
                 display: block;
             }
-            
+
             .role-title {
                 font-size: 1.5rem;
                 font-weight: bold;
                 margin-bottom: 10px;
             }
-            
+
             .role-description {
                 font-size: 1rem;
                 opacity: 0.8;
                 line-height: 1.4;
             }
-            
+
             @media (max-width: 480px) {
                 .role-cards {
                     grid-template-columns: 1fr;
                     gap: 20px;
                 }
-                
+
                 .header h1 {
                     font-size: 2rem;
                 }
-                
+
                 .role-card {
                     padding: 30px 20px;
                 }
-                
+
                 .role-icon {
                     font-size: 3rem;
                 }
@@ -668,7 +802,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 <h1>🎯 Choose Your Role</h1>
                 <p>Join the presentation experience</p>
             </div>
-            
+
             <div class="role-cards">
                 <a href="/presenter" class="role-card">
                     <span class="role-icon">🎤</span>
@@ -677,7 +811,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         Control the presentation with speaker notes and timing
                     </div>
                 </a>
-                
+
                 <a href="/audience" class="role-card">
                     <span class="role-icon">👥</span>
                     <div class="role-title">Audience</div>
@@ -708,7 +842,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 padding: 0;
                 box-sizing: border-box;
             }
-            
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -719,7 +853,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 align-items: center;
                 padding: 20px;
             }
-            
+
             .login-container {
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
@@ -730,31 +864,31 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 max-width: 400px;
                 width: 100%;
             }
-            
+
             .login-header {
                 margin-bottom: 30px;
             }
-            
+
             .login-header h1 {
                 font-size: 2rem;
                 margin-bottom: 10px;
             }
-            
+
             .login-header p {
                 opacity: 0.8;
             }
-            
+
             .form-group {
                 margin-bottom: 25px;
                 text-align: left;
             }
-            
+
             .form-group label {
                 display: block;
                 margin-bottom: 8px;
                 font-weight: bold;
             }
-            
+
             .form-group input {
                 width: 100%;
                 padding: 15px;
@@ -764,11 +898,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 color: white;
                 font-size: 1.1rem;
             }
-            
+
             .form-group input::placeholder {
                 color: rgba(255, 255, 255, 0.7);
             }
-            
+
             .login-btn {
                 width: 100%;
                 padding: 15px;
@@ -781,23 +915,23 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
-            
+
             .login-btn:hover {
                 background: rgba(76, 175, 80, 0.5);
                 transform: translateY(-2px);
             }
-            
+
             .back-link {
                 margin-top: 20px;
                 display: block;
                 color: rgba(255, 255, 255, 0.8);
                 text-decoration: none;
             }
-            
+
             .back-link:hover {
                 color: white;
             }
-            
+
             .error {
                 background: rgba(220, 53, 69, 0.2);
                 border: 1px solid #dc3545;
@@ -814,18 +948,18 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 <h1>🎤 Presenter Access</h1>
                 <p>Enter the presenter password to control the presentation</p>
             </div>
-            
+
             <form method="POST" action="/presenter/login">
                 <div class="form-group">
                     <label for="password">Password:</label>
                     <input type="password" id="password" name="password" placeholder="Enter presenter password" required autofocus>
                 </div>
-                
+
                 <button type="submit" class="login-btn">
                     🔓 Access Presenter Controls
                 </button>
             </form>
-            
+
             <a href="/" class="back-link">← Back to role selection</a>
         </div>
     </body>
@@ -849,7 +983,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 padding: 0;
                 box-sizing: border-box;
             }
-            
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -857,29 +991,29 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 min-height: 100vh;
                 padding: 20px;
             }
-            
+
             .audience-container {
                 max-width: 800px;
                 margin: 0 auto;
             }
-            
+
             .audience-header {
                 text-align: center;
                 margin-bottom: 30px;
                 padding-bottom: 20px;
                 border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             }
-            
+
             .audience-header h1 {
                 font-size: 2rem;
                 margin-bottom: 10px;
             }
-            
+
             .presentation-info {
                 opacity: 0.8;
                 font-size: 1.1rem;
             }
-            
+
             .slide-display {
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
@@ -889,26 +1023,26 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 min-height: 400px;
             }
-            
+
             .slide-header {
                 text-align: center;
                 margin-bottom: 25px;
                 padding-bottom: 15px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             }
-            
+
             .slide-counter {
                 font-size: 1rem;
                 opacity: 0.8;
                 margin-bottom: 10px;
             }
-            
+
             .slide-title {
                 font-size: 2rem;
                 font-weight: bold;
                 color: #ffd700;
             }
-            
+
             .slide-content {
                 font-size: 1.2rem;
                 line-height: 1.6;
@@ -918,7 +1052,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 border-radius: 10px;
                 font-family: 'Monaco', 'Consolas', monospace;
             }
-            
+
             .connection-status {
                 text-align: center;
                 padding: 15px;
@@ -926,41 +1060,111 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 margin-bottom: 20px;
                 font-size: 1.1rem;
             }
-            
+
             .status-connected {
                 background: rgba(76, 175, 80, 0.2);
                 border: 1px solid #4caf50;
                 color: #90EE90;
             }
-            
+
             .status-disconnected {
                 background: rgba(220, 53, 69, 0.2);
                 border: 1px solid #dc3545;
                 color: #ff6b6b;
             }
-            
+
             .audience-footer {
                 text-align: center;
                 margin-top: 30px;
                 opacity: 0.7;
             }
-            
+
             .loading {
                 text-align: center;
                 opacity: 0.7;
                 font-style: italic;
             }
-            
+
+            /* Poll interface styles */
+            .poll-container {
+                background: rgba(0, 0, 0, 0.4);
+                padding: 30px;
+                border-radius: 15px;
+                border: 2px solid #3498db;
+                text-align: center;
+            }
+
+            .poll-question h3 {
+                color: #3498db;
+                margin-bottom: 25px;
+                font-size: 1.4rem;
+                font-weight: 600;
+            }
+
+            .poll-options {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .poll-option {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                border: none;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-size: 1.1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .poll-option:hover {
+                background: linear-gradient(135deg, #2980b9, #1f5f8c);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            }
+
+            .poll-option:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .poll-option.voted {
+                background: linear-gradient(135deg, #27ae60, #229954);
+                border: 2px solid #2ecc71;
+            }
+
+            .poll-status {
+                font-size: 1.1rem;
+                padding: 15px;
+                border-radius: 8px;
+                background: rgba(0, 0, 0, 0.3);
+                color: #ecf0f1;
+            }
+
+            .slide-text {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 25px;
+                border-radius: 10px;
+                font-family: 'Monaco', 'Consolas', monospace;
+                line-height: 1.6;
+                white-space: pre-wrap;
+            }
+
             @media (max-width: 768px) {
                 .slide-title {
                     font-size: 1.5rem;
                 }
-                
+
                 .slide-content {
                     font-size: 1rem;
                     padding: 20px;
                 }
-                
+
                 .slide-display {
                     padding: 20px;
                 }
@@ -975,11 +1179,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     <span id="presentation-title">Loading presentation...</span>
                 </div>
             </div>
-            
+
             <div id="connection-status" class="connection-status status-disconnected">
                 🔄 Connecting to presentation...
             </div>
-            
+
             <div class="slide-display">
                 <div class="slide-header">
                     <div class="slide-counter">
@@ -987,12 +1191,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     </div>
                     <div id="slide-title" class="slide-title">Loading...</div>
                 </div>
-                
+
                 <div id="slide-content" class="slide-content loading">
                     Waiting for presentation to start...
                 </div>
             </div>
-            
+
             <div class="audience-footer">
                 <p>🔄 This view updates automatically as the presenter advances slides</p>
                 <p>👋 Welcome to the presentation experience!</p>
@@ -1002,12 +1206,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
         <script>
             let currentSlide = 1;
             let isConnected = false;
-            
+
             async function updateAudienceView() {
                 try {
                     const response = await fetch('/api/current');
                     const data = await response.json();
-                    
+
                     // Update connection status
                     if (!isConnected) {
                         isConnected = true;
@@ -1015,35 +1219,98 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         statusEl.textContent = '✅ Connected to live presentation';
                         statusEl.className = 'connection-status status-connected';
                     }
-                    
+
                     currentSlide = data.current_slide + 1; // Convert from 0-based
-                    
+
                     // Update presentation info
                     document.getElementById('presentation-title').textContent = data.presentation_title || 'Live Presentation';
                     document.getElementById('current-slide').textContent = currentSlide;
                     document.getElementById('total-slides').textContent = data.total_slides;
                     document.getElementById('slide-title').textContent = data.title || 'Untitled Slide';
-                    document.getElementById('slide-content').textContent = data.content || 'No content available';
-                    
-                    // Remove loading class
-                    document.getElementById('slide-content').classList.remove('loading');
-                    
+                    // Handle poll slides vs regular slides
+                    const slideContentEl = document.getElementById('slide-content');
+                    slideContentEl.classList.remove('loading');
+
+                    if (data.poll_data && data.poll_data.question) {
+                        // Render poll interface
+                        renderPollInterface(data.poll_data, currentSlide.toString());
+                    } else {
+                        // Render regular slide content
+                        slideContentEl.innerHTML = '<div class="slide-text">' + (data.content || 'No content available').replace(/\\n/g, '<br>') + '</div>';
+                    }
+
                 } catch (error) {
                     console.error('Failed to update audience view:', error);
-                    
+
                     // Update connection status
                     isConnected = false;
                     const statusEl = document.getElementById('connection-status');
                     statusEl.textContent = '❌ Connection lost - attempting to reconnect...';
                     statusEl.className = 'connection-status status-disconnected';
-                    
+
                     // Show error in slide content
                     document.getElementById('slide-title').textContent = 'Connection Error';
                     document.getElementById('slide-content').textContent = 'Unable to connect to presentation. Please check your connection.';
                     document.getElementById('slide-content').classList.add('loading');
                 }
             }
-            
+
+            function renderPollInterface(pollData, slideId) {
+                const slideContentEl = document.getElementById('slide-content');
+
+                let optionsHtml = '';
+                pollData.options.forEach((option, index) => {
+                    optionsHtml += 
+                        '<button class="poll-option" onclick="submitVote(\\'' + slideId + '\\', ' + index + ')">' +
+                            option +
+                        '</button>';
+                });
+
+                slideContentEl.innerHTML = 
+                    '<div class="poll-container">' +
+                        '<div class="poll-question">' +
+                            '<h3>🗳️ ' + pollData.question + '</h3>' +
+                        '</div>' +
+                        '<div class="poll-options">' +
+                            optionsHtml +
+                        '</div>' +
+                        '<div id="poll-status" class="poll-status">' +
+                            'Choose your answer above' +
+                        '</div>' +
+                    '</div>';
+            }
+
+            async function submitVote(slideId, optionIndex) {
+                try {
+                    const response = await fetch('/api/poll/vote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            slide_id: slideId,
+                            option: optionIndex
+                        })
+                    });
+
+                    if (response.ok) {
+                        // Update status and disable buttons
+                        document.getElementById('poll-status').innerHTML = '✅ Thank you for voting!';
+                        document.querySelectorAll('.poll-option').forEach(btn => {
+                            btn.disabled = true;
+                            if (btn.onclick.toString().includes(optionIndex.toString())) {
+                                btn.classList.add('voted');
+                            }
+                        });
+                    } else {
+                        document.getElementById('poll-status').innerHTML = '❌ Failed to submit vote. Please try again.';
+                    }
+                } catch (error) {
+                    console.error('Vote submission failed:', error);
+                    document.getElementById('poll-status').innerHTML = '❌ Connection error. Please try again.';
+                }
+            }
+
             // Initial load and periodic updates
             updateAudienceView();
             setInterval(updateAudienceView, 2000); // Update every 2 seconds
@@ -1058,25 +1325,29 @@ defmodule ElixirNoDeps.WebRemoteServer do
   defp handle_presenter_login(request) do
     # Extract the POST body from the request
     request_parts = String.split(request, "\r\n\r\n", parts: 2)
-    
-    body = case request_parts do
-      [_headers, post_body] -> post_body
-      _ -> ""
-    end
-    
+
+    body =
+      case request_parts do
+        [_headers, post_body] -> post_body
+        _ -> ""
+      end
+
     # Parse form data (simple URL-encoded parsing)
-    password = case String.contains?(body, "password=") do
-      true ->
-        body
-        |> String.split("&")
-        |> Enum.find(&String.starts_with?(&1, "password="))
-        |> case do
-          "password=" <> pass -> URI.decode_www_form(pass)
-          nil -> ""
-        end
-      false -> ""
-    end
-    
+    password =
+      case String.contains?(body, "password=") do
+        true ->
+          body
+          |> String.split("&")
+          |> Enum.find(&String.starts_with?(&1, "password="))
+          |> case do
+            "password=" <> pass -> URI.decode_www_form(pass)
+            nil -> ""
+          end
+
+        false ->
+          ""
+      end
+
     # Check password
     if password == "jerry" do
       # Redirect to presenter control interface
@@ -1101,7 +1372,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 padding: 0;
                 box-sizing: border-box;
             }
-            
+
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1112,7 +1383,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 align-items: center;
                 padding: 20px;
             }
-            
+
             .login-container {
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
@@ -1123,31 +1394,31 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 max-width: 400px;
                 width: 100%;
             }
-            
+
             .login-header {
                 margin-bottom: 30px;
             }
-            
+
             .login-header h1 {
                 font-size: 2rem;
                 margin-bottom: 10px;
             }
-            
+
             .login-header p {
                 opacity: 0.8;
             }
-            
+
             .form-group {
                 margin-bottom: 25px;
                 text-align: left;
             }
-            
+
             .form-group label {
                 display: block;
                 margin-bottom: 8px;
                 font-weight: bold;
             }
-            
+
             .form-group input {
                 width: 100%;
                 padding: 15px;
@@ -1157,11 +1428,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 color: white;
                 font-size: 1.1rem;
             }
-            
+
             .form-group input::placeholder {
                 color: rgba(255, 255, 255, 0.7);
             }
-            
+
             .login-btn {
                 width: 100%;
                 padding: 15px;
@@ -1174,23 +1445,23 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
-            
+
             .login-btn:hover {
                 background: rgba(76, 175, 80, 0.5);
                 transform: translateY(-2px);
             }
-            
+
             .back-link {
                 margin-top: 20px;
                 display: block;
                 color: rgba(255, 255, 255, 0.8);
                 text-decoration: none;
             }
-            
+
             .back-link:hover {
                 color: white;
             }
-            
+
             .error {
                 background: rgba(220, 53, 69, 0.2);
                 border: 1px solid #dc3545;
@@ -1207,22 +1478,22 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 <h1>🎤 Presenter Access</h1>
                 <p>Enter the presenter password to control the presentation</p>
             </div>
-            
+
             <div class="error">
                 ❌ Incorrect password. Please try again.
             </div>
-            
+
             <form method="POST" action="/presenter/login">
                 <div class="form-group">
                     <label for="password">Password:</label>
                     <input type="password" id="password" name="password" placeholder="Enter presenter password" required autofocus>
                 </div>
-                
+
                 <button type="submit" class="login-btn">
                     🔓 Access Presenter Controls
                 </button>
             </form>
-            
+
             <a href="/" class="back-link">← Back to role selection</a>
         </div>
     </body>
@@ -1359,6 +1630,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
             title: if(current_slide, do: current_slide.title, else: nil),
             content: if(current_slide, do: current_slide.content, else: nil),
             speaker_notes: if(current_slide, do: current_slide.speaker_notes, else: nil),
+            poll_data: if(current_slide, do: current_slide.poll_data, else: nil),
             next_slide: %{
               title: if(next_slide, do: next_slide.title, else: nil),
               content: if(next_slide, do: next_slide.content, else: nil)
@@ -1388,10 +1660,10 @@ defmodule ElixirNoDeps.WebRemoteServer do
       end
 
     content_length = byte_size(body)
-    
+
     # Build custom headers
     custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r" end)
-    
+
     default_headers = [
       "Content-Type: #{content_type}\r",
       "Content-Length: #{content_length}\r",
@@ -1400,7 +1672,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
       "Access-Control-Allow-Methods: GET, POST, OPTIONS\r",
       "Access-Control-Allow-Headers: Content-Type\r"
     ]
-    
+
     all_headers = custom_headers ++ default_headers
 
     """
@@ -1478,5 +1750,115 @@ defmodule ElixirNoDeps.WebRemoteServer do
     "{#{Enum.join(pairs, ",")}}"
   end
 
-  defp encode_value(value), do: encode_value(inspect(value))
+  defp encode_value(value), do: "\"#{inspect(value)}\""
+
+  # Poll-related functions
+
+  defp handle_poll_vote(request) do
+    case parse_request_body(request) do
+      {:ok, %{"slide_id" => slide_id, "option" => option}}
+      when is_binary(slide_id) and is_integer(option) ->
+        ElixirNoDeps.PollStorage.vote(slide_id, option)
+
+        response = """
+        {"success": true, "message": "Vote recorded"}
+        """
+
+        build_http_response(200, "application/json", response)
+
+      {:ok, _} ->
+        serve_error(400, "Invalid vote data")
+
+      {:error, reason} ->
+        serve_error(400, reason)
+    end
+  end
+
+  defp serve_poll_results(slide_id) do
+    results = ElixirNoDeps.PollStorage.get_results(slide_id)
+    total_votes = ElixirNoDeps.PollStorage.get_total_votes(slide_id)
+
+    response = """
+    {
+      "slide_id": #{encode_value(slide_id)},
+      "results": #{encode_value(results)},
+      "total_votes": #{total_votes}
+    }
+    """
+
+    build_http_response(200, "application/json", response)
+  end
+
+  defp parse_request_body(request) do
+    # Extract body from POST request
+    parts = String.split(request, "\r\n\r\n", parts: 2)
+
+    case parts do
+      [_headers, body] ->
+        try do
+          # Simple JSON parser for vote data
+          body = String.trim(body)
+
+          # Parse basic JSON structure for vote
+          cond do
+            String.contains?(body, "slide_id") and String.contains?(body, "option") ->
+              slide_id = extract_json_value(body, "slide_id")
+              option_str = extract_json_value(body, "option")
+
+              case Integer.parse(option_str) do
+                {option, ""} -> {:ok, %{"slide_id" => slide_id, "option" => option}}
+                _ -> {:error, "Invalid option value"}
+              end
+
+            true ->
+              {:error, "Missing required fields"}
+          end
+        rescue
+          _ -> {:error, "Invalid JSON"}
+        end
+
+      _ ->
+        {:error, "No request body"}
+    end
+  end
+
+  defp extract_json_value(json_string, key) do
+    # Simple JSON value extraction - handles both strings and numbers
+    # Use String.contains? and manual parsing to avoid regex interpolation issues
+    cond do
+      String.contains?(json_string, "\"#{key}\"") ->
+        case String.split(json_string, "\"#{key}\"") do
+          [_, rest] ->
+            case String.split(rest, ":", parts: 2) do
+              [_, value_part] ->
+                value_part = String.trim(value_part)
+
+                cond do
+                  String.starts_with?(value_part, "\"") ->
+                    # String value
+                    case String.split(value_part, "\"", parts: 3) do
+                      ["", string_value, _] -> string_value
+                      _ -> nil
+                    end
+
+                  true ->
+                    # Number value
+                    case String.split(value_part, [",", "}", "]"], parts: 2) do
+                      [number_str, _] -> String.trim(number_str)
+                      [number_str] -> String.trim(number_str)
+                    end
+                end
+
+              _ ->
+                nil
+            end
+
+          _ ->
+            nil
+        end
+
+      true ->
+        nil
+    end
+  end
 end

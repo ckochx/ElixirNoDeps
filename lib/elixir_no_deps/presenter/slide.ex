@@ -16,7 +16,8 @@ defmodule ElixirNoDeps.Presenter.Slide do
     :raw_content,
     :speaker_notes,
     :metadata,
-    :slide_number
+    :slide_number,
+    :poll_data
   ]
 
   @type t :: %__MODULE__{
@@ -26,7 +27,8 @@ defmodule ElixirNoDeps.Presenter.Slide do
           raw_content: String.t(),
           speaker_notes: String.t() | nil,
           metadata: map(),
-          slide_number: integer()
+          slide_number: integer(),
+          poll_data: map() | nil
         }
 
   @doc """
@@ -44,7 +46,8 @@ defmodule ElixirNoDeps.Presenter.Slide do
       raw_content: content,
       speaker_notes: Keyword.get(opts, :speaker_notes),
       metadata: Keyword.get(opts, :metadata, %{}),
-      slide_number: slide_number
+      slide_number: slide_number,
+      poll_data: Keyword.get(opts, :poll_data)
     }
   end
 
