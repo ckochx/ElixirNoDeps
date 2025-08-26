@@ -16,12 +16,10 @@ options:
 - "Getting comfortable (6 months - 2 years)"
 - "Experienced (2-5 years)"
 - "Elixir veteran (5+ years)"
--->
 
-<!-- Speaker notes:
+the ElixirConf US Logo slides
 [Walk on with confidence, pause, look at audience]
-This is our hook slide - pause here to let the audience take in the title and build anticipation
-Wait for full attention before proceeding -->
+ -->
 
 ---
 
@@ -43,7 +41,9 @@ options:
 -->
 
 <!-- Speaker notes:
-[]
+[This is our hook slide - pause here to let the audience take in the title and build anticipation
+Wait for full attention before proceeding]
+
 Jerry, should we start this presentation on a spicy note?
 
 Yes we should
@@ -278,6 +278,11 @@ options:
 "Today, I'll show you why Elixir isn't just another language—it's a paradigm shift that can replace your entire backend architecture.
 Sometimes, the future means going back to fundamentals that actually work."
 
+And to package up all your source code, we have two powerful tools: escript and releases.
+(runtime included!)
+The "packaged" files are self contained and have everything they need to run themselves.
+Docker not required!
+
 This slide shows deployment capabilities. Emphasize "Self-contained" - no Docker needed! -->
 
 ---
@@ -300,6 +305,7 @@ options:
 -->
 
 <!-- Speaker notes:
+
 Transition slide - acknowledge that dependencies aren't always bad, but we need to be smarter about them.
 This is where we pivot from "built-in is great" to "dependencies need evaluation" -->
 
@@ -330,8 +336,14 @@ options:
 -->
 
 <!-- Speaker notes:
-This is where we get real about the dependency landscape. The "repo abandonment/orphanage" point is crucial - this is happening across the industry.
-Emphasize that corporate sponsorship isn't always bad - it can mean long-term stability -->
+
+You have to look at every dependency critically.
+
+The "repo abandonment/orphanage" point is crucial - this is happening across the industry.
+
+Emphasize that corporate sponsorship isn't always bad - it can mean long-term stability
+
+ -->
 
 ---
 
@@ -390,6 +402,10 @@ options:
 -->
 
 <!-- Speaker notes:
+
+What if the repo is just gathering dust? Open issues? Unmerged trivail pull requests?
+And what if you only need 20% of the functionality in the repo?
+
 The 80/20 rule is key here - most people only use a small fraction of what libraries provide.
 "What if you only need ⅓ of functionality?" - this often resonates with developers -->
 
@@ -399,8 +415,8 @@ The 80/20 rule is key here - most people only use a small fraction of what libra
 
 ## The Tradeoff
 
-- **Encapsulation**: Hiding complexity
-- **Obfuscation**: Hiding what's happening\*\*
+- **Encapsulation**: Namespacing
+- **Obfuscation**: Hiding what's happening**
 - **Transparency**: See the code you're using
 - **Control**: Understand your dependencies
 
@@ -453,10 +469,16 @@ options:
 -->
 
 <!-- Speaker notes:
-This is the harsh reality check.
-"Because Timex solved such a necessary problem it is now a pervasive transient dependency.
-And that is unfortunate since the author, as I understand it, has largely moved on from Elixir.
+
+Aside: "The Orphanage Problem" sounds like a darker version of the Trolley Experiment
+
+[This is the harsh reality check.]
+
+"Timex solved such a vital problem and it did it so well that it is now a pervasive transient dependency.
+And that is unfortunate since the author, as I understand it, has largely moved on from Elixir.hh
 Repo abandonment/orphanage is a real issue. Not just in Elixir, but across software engineering. There are fewer open source contributors. There is more disincentive to actually contribute due to both time pressure and social issues…"
+
+Who here has seen, participated in, or been the unfortunate focus of a viral Github issue?
 
 Make this personal - this affects everyone in the room -->
 
@@ -466,9 +488,11 @@ Make this personal - this affects everyone in the room -->
 
 ## Copy the Source Directly
 
+![Elixir Evolution](priv/assets/jarvis.jpg)
+
 **Use an LLM to import dependency code into your codebase**
 
-## This is the part where we really make you mad
+## This is the part where we make you mad
 
 - **Selective inclusion**: Only what you need
 - **Full control**: No external dependencies
@@ -605,6 +629,7 @@ This addresses the ethical concerns - we're not stealing, we're adapting -->
 
 **"Be explicit"** - Have your code tell you what it does
 
+<<<<<<< Updated upstream
 <!-- poll:
 question: "What's your preferred development approach?"
 options:
@@ -615,10 +640,15 @@ options:
 -->
 
 <!-- Speaker notes:
-"The old paradigm of writing and maintaining code is dead and dying. Embrace the tools at hand.
+"The old paradigm of writing and maintaining code is dead and dying. Embrace the tools at hand. 
+Libraries/ deps are one way to manage the fact that it is too time consuming to reimplement
+the same bit of functionality in every codebase.
+But now we are less constrained by the time it takes the write the code.
+And as a side effect you get code visibility and explicitness (for free)
+
 One of the core principals of Elixir is: Be explicit. Have your code tell you what it does. Don't rely on indirection or magic."
 
-Connect this back to Elixir's philosophy -->
+[Connect this back to Elixir's philosophy] -->
 
 ---
 
