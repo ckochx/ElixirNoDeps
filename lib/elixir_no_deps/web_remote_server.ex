@@ -105,6 +105,11 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 color: white;
                 min-height: 100vh;
                 padding: 20px;
+                transition: background 0.5s ease;
+            }
+
+            body.slide-warning {
+                background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             }
 
             .container {
@@ -367,6 +372,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
         <script>
             let currentSlide = 1;
             let totalSlides = 1;
+            const SLIDE_WARNING_THRESHOLD = 40; // seconds
 
             async function updateSlideInfo() {
                 try {
@@ -396,6 +402,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     if (data.timing) {
                         document.getElementById('total-timer').textContent = formatTime(data.timing.total_time_seconds);
                         document.getElementById('slide-timer').textContent = formatTime(data.timing.current_slide_time_seconds);
+                        
+                        // Check if we need to show slide timing warning
+                        updateSlideTimingWarning(data.timing.current_slide_time_seconds);
                     }
 
                     // Update next slide preview
@@ -425,10 +434,28 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
 
+            function updateSlideTimingWarning(currentSlideSeconds) {
+                const body = document.body;
+                
+                if (currentSlideSeconds >= SLIDE_WARNING_THRESHOLD) {
+                    // Add warning class for red background
+                    if (!body.classList.contains('slide-warning')) {
+                        body.classList.add('slide-warning');
+                    }
+                } else {
+                    // Remove warning class to return to normal background
+                    body.classList.remove('slide-warning');
+                }
+            }
+
             async function navigate(direction) {
                 try {
                     document.body.classList.add('loading');
                     await fetch(`/api/${direction}`, { method: 'POST' });
+                    
+                    // Clear warning immediately on navigation (new slide = fresh timer)
+                    document.body.classList.remove('slide-warning');
+                    
                     setTimeout(updateSlideInfo, 100); // Small delay for state to update
                 } catch (error) {
                     console.error('Navigation failed:', error);
@@ -449,6 +476,10 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 try {
                     document.body.classList.add('loading');
                     await fetch(`/api/goto/${slideNum}`, { method: 'POST' });
+                    
+                    // Clear warning immediately on navigation (new slide = fresh timer)
+                    document.body.classList.remove('slide-warning');
+                    
                     input.value = '';
                     setTimeout(updateSlideInfo, 100);
                 } catch (error) {
