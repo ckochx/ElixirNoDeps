@@ -7,6 +7,9 @@ defmodule ElixirNoDeps.Application do
 
   @impl true
   def start(_type, _args) do
+    # Initialize poll storage ETS table
+    ElixirNoDeps.PollStorage.start_link()
+
     children = [
       # Starts a worker by calling: ElixirNoDeps.Worker.start_link(arg)
       # {ElixirNoDeps.Worker, arg}

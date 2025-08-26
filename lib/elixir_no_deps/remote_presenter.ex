@@ -244,22 +244,27 @@ defmodule ElixirNoDeps.RemotePresenter do
     """
     # 📱 Remote Control Ready!
 
-    ## Connect Your Phone
+    ## Connect Devices
     **URL:** `http://#{local_ip}:#{web_port}`
 
-    ## Quick Setup
+    ## For Presenters (You)
     1. **Connect phone** to the same network as this laptop
-    2. **Open browser** on your phone
-    3. **Go to:** `http://#{local_ip}:#{web_port}`
-    4. **You'll see** slide controls and speaker notes
+    2. **Go to:** `http://#{local_ip}:#{web_port}`
+    3. **Choose "Presenter"** and enter your password
+    4. **Control slides** with speaker notes and timing
+
+    ## For Audience (50+ people supported!)
+    1. **Share the URL** with your audience
+    2. **They choose "Audience"** (no password needed)
+    3. **They follow along** with live slides on their devices
+    4. **Updates automatically** as you present
 
     ## Ready to Start?
     - **Press Enter** to begin the presentation
-    - **Your phone** will control the slides
-    - **Audience sees** this terminal (clean view)
-    - **You see** speaker notes on your phone
+    - **Multiple devices** can connect simultaneously
+    - **Terminal stays clean** for projection
 
-    <!-- Speaker notes: Make sure you can see this note on your phone! This confirms the remote control is working. The audience cannot see these speaker notes - only you can on your phone interface. -->
+    <!-- Speaker notes: Test the connection now! Go to the URL on your phone, choose Presenter, and enter your password. The audience can also follow along by choosing "Audience" - perfect for conferences! -->
 
     ---
     """

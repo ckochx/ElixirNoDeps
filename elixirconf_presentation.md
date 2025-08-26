@@ -9,7 +9,16 @@ conference: "ElixirConf US 2025"
 
 **August 28-29, 2025 | Orlando, FL**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your Elixir experience level?"
+options:
+- "New to Elixir (0-6 months)"
+- "Getting comfortable (6 months - 2 years)"
+- "Experienced (2-5 years)"
+- "Elixir veteran (5+ years)"
+-->
+
+<!-- Speaker notes:
 [Walk on with confidence, pause, look at audience]
 This is our hook slide - pause here to let the audience take in the title and build anticipation
 Wait for full attention before proceeding -->
@@ -23,6 +32,15 @@ Wait for full attention before proceeding -->
 ## Modern Software Engineering is broken
 
 ![Hot Takes](priv/assets/HotTakes.webp)
+
+<!-- poll:
+question: "How do you feel about this spicy take: 'Modern Software Engineering is broken'?"
+options:
+- "🔥 Totally agree - it's a mess!"
+- "🤔 Partially true, but not entirely"
+- "😤 Disagree - modern tools are great"
+- "🍿 Just here for the drama"
+-->
 
 <!-- Speaker notes:
 []
@@ -48,7 +66,16 @@ We've built skyscrapers of duct tape… and called it 'modern software engineeri
 
 ![Elixir Applications](priv/assets/elixir-applications.png)
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How complex is your current tech stack?"
+options:
+- "🏗️ It's a Kubernetes nightmare"
+- "📦 Docker + microservices maze"
+- "🎯 Pretty simple, mostly monolith"
+- "🤷 What's a tech stack?"
+-->
+
+<!-- Speaker notes:
 [THE CONTRAST - Introduce the alternative]
 "But what if I told you there's a 30-year-old technology designed from day one to run millions of concurrent processes, self-heal, and scale effortlessly—without the Rube Goldberg machine?"
 
@@ -63,6 +90,15 @@ Use the image to emphasize the complexity we're about to challenge -->
 ![MIND. BLOWN.](priv/assets/mind-blown.gif)
 
 **Let's explore what's possible with pure Elixir/OTP...**
+
+<!-- poll:
+question: "What's your biggest Elixir surprise so far?"
+options:
+- "🤯 It can do THAT much built-in?"
+- "⚡ The performance is incredible"
+- "🧠 Pattern matching changed my life"
+- "📚 Still learning the basics"
+-->
 
 <!-- Speaker notes:
 
@@ -82,7 +118,22 @@ But first let's (breifly) look at what we can do with "naked" Elixir
 
 ## Christian Koch & Jeremy Searls
 
+**💼 Connect with us:**
+
+- **Chris Koch**: ckochx@icloud.com
+- **Jeremy Searls**: @jersearls on every platform
+- **Source Code**: https://github.com/ckochx/ElixirNoDeps
+
 ![Man Coding](priv/assets/hello-cleveland.png)
+
+<!-- poll:
+question: "What's your approach to adding dependencies?"
+options:
+- "📦 npm install all the things!"
+- "🤔 Carefully evaluate each one"
+- "🙈 Copy code when possible"
+- "🔨 Build everything from scratch"
+-->
 
 <!-- Speaker notes:
 [0:00-0:20] THE HOOK - Deliver with confidence and energy
@@ -109,7 +160,16 @@ with our talk titled "Elixir is all you need"
 - **Key management**: Built-in support
 - **No external libraries needed!**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How often do you use SSH in your applications?"
+options:
+- "🚀 Daily - it's essential"
+- "📅 Occasionally for deployments"
+- "🤷 Rarely, mostly for server access"
+- "😱 Never thought of using it in apps"
+-->
+
+<!-- Speaker notes:
 
 This slide demonstrates the first example of built-in capabilities. Emphasize "No external libraries needed!" -->
 
@@ -122,11 +182,20 @@ This slide demonstrates the first example of built-in capabilities. Emphasize "N
 ![Connecting Platforms](priv/assets/connecting-platforms.png)
 
 - **HTTP client**: `:httpc` module
-- **HTTP server**: `:httpd` module  
+- **HTTP server**: `:httpd` module
 - **SSL/TLS**: Built-in support
 - **REST APIs**: Full implementation
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your go-to for HTTP in Elixir?"
+options:
+- "🚀 HTTPoison/Finch + Plug/Phoenix"
+- "🔧 Built-in :httpc and :httpd"
+- "🎯 Tesla for clients, Phoenix for servers"
+- "🤔 Wait, there are built-in options?"
+-->
+
+<!-- Speaker notes:
 Continue building the case for built-in capabilities. This shows HTTP is not just client OR server - it's BOTH.
 Emphasize that these are production-ready modules, not toy implementations -->
 
@@ -143,7 +212,16 @@ Emphasize that these are production-ready modules, not toy implementations -->
 - **Memory efficient**: Optimized storage
 - **No Redis required!**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your caching solution of choice?"
+options:
+- "⚡ Redis - the classic"
+- "📊 ETS - built into BEAM"
+- "🏗️ Memcached for simplicity"
+- "😅 What's caching? Just query the DB!"
+-->
+
+<!-- Speaker notes:
 
 ETS is incredibly powerful - emphasize "No Redis required!" as this often surprises people -->
 
@@ -160,7 +238,16 @@ ETS is incredibly powerful - emphasize "No Redis required!" as this often surpri
 - **Fast access**: Optimized for reads
 - **No database needed for simple data!**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How do you handle application configuration/state?"
+options:
+- "📦 Environment variables everywhere"
+- "📊 Database for all persistent data"
+- "🚀 GenServer state + ETS/Persistent Term"
+- "🤷 Mix of everything, it's chaos"
+-->
+
+<!-- Speaker notes:
 Persistent Term is often overlooked but incredibly useful. This is where you can mention that sometimes you don't need a full database - just fast, durable storage.
 "Sometimes the simplest solution is the best solution" -->
 
@@ -177,7 +264,16 @@ Persistent Term is often overlooked but incredibly useful. This is where you can
 - **Hot code swapping**: Runtime updates
 - **Self-contained**: No external deps
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How do you deploy your Elixir apps?"
+options:
+- "🚀 Elixir releases (mix release)"
+- "📦 Docker containers"
+- "☁️ Cloud platforms (Fly.io, Gigalixir, etc.)"
+- "😅 What's deployment? It works on my machine!"
+-->
+
+<!-- Speaker notes:
 [1:35-1:50] THE PROMISE - Set up what's coming
 "Today, I'll show you why Elixir isn't just another language—it's a paradigm shift that can replace your entire backend architecture.
 Sometimes, the future means going back to fundamentals that actually work."
@@ -194,7 +290,16 @@ This slide shows deployment capabilities. Emphasize "Self-contained" - no Docker
 
 **Let's have an honest conversation about dependency management...**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How do you evaluate adding a new dependency?"
+options:
+- "📊 Look at GitHub stars and download counts"
+- "🔍 Deep dive: code quality, maintenance, tests"
+- "⏱️ If it saves time, add it immediately"
+- "😅 YOLO - just mix deps.get and pray"
+-->
+
+<!-- Speaker notes:
 Transition slide - acknowledge that dependencies aren't always bad, but we need to be smarter about them.
 This is where we pivot from "built-in is great" to "dependencies need evaluation" -->
 
@@ -215,7 +320,16 @@ This is where we pivot from "built-in is great" to "dependencies need evaluation
 - **Long-term viability assessment**
 - **Community health indicators**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your biggest concern with dependencies?"
+options:
+- "😱 Abandoned/unmaintained packages"
+- "🔒 Security vulnerabilities"
+- "🏗️ Breaking changes in updates"
+- "📏 Too many transitive dependencies"
+-->
+
+<!-- Speaker notes:
 This is where we get real about the dependency landscape. The "repo abandonment/orphanage" point is crucial - this is happening across the industry.
 Emphasize that corporate sponsorship isn't always bad - it can mean long-term stability -->
 
@@ -236,7 +350,16 @@ Emphasize that corporate sponsorship isn't always bad - it can mean long-term st
 - **More complex dependency graphs**
 - **Supply chain security concerns**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How are dependency decisions made at your company?"
+options:
+- "👥 Team discussion and consensus"
+- "💼 Senior engineer/architect approval"
+- "🏃 Individual developer choice"
+- "🤷 No formal process, it just happens"
+-->
+
+<!-- Speaker notes:
 Contrast the old way (slow, bureaucratic) with the new reality (fast, complex, insecure).
 This sets up the need for a new approach to dependency management -->
 
@@ -257,7 +380,16 @@ This sets up the need for a new approach to dependency management -->
 - **You often need just the core features**
 - **The rest adds complexity without value**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "When a library becomes unmaintained, you:"
+options:
+- "🔱 Fork it and maintain your own version"
+- "🚀 Find an actively maintained alternative"
+- "✏️ Copy the code you need into your project"
+- "😅 Keep using it and hope for the best"
+-->
+
+<!-- Speaker notes:
 The 80/20 rule is key here - most people only use a small fraction of what libraries provide.
 "What if you only need ⅓ of functionality?" - this often resonates with developers -->
 
@@ -268,7 +400,7 @@ The 80/20 rule is key here - most people only use a small fraction of what libra
 ## The Tradeoff
 
 - **Encapsulation**: Hiding complexity
-- **Obfuscation**: Hiding what's happening**
+- **Obfuscation**: Hiding what's happening\*\*
 - **Transparency**: See the code you're using
 - **Control**: Understand your dependencies
 
@@ -277,6 +409,15 @@ The 80/20 rule is key here - most people only use a small fraction of what libra
 - **Postgrex**: Very specific, complex problem
 - **Ecto**: Modular database abstraction
 - **But could you write SQL directly?**
+
+<!-- poll:
+question: "Do you prefer libraries that:"
+options:
+- "🎩 Hide complexity (magic functions)"
+- "🔍 Show you exactly what's happening"
+- "⚖️ Balance of both depending on use case"
+- "🤷 I don't think about it much"
+-->
 
 <!-- Speaker notes:
 "Well a library is both encapsulation and obfuscation. Not to suggest that every library is unnecessary.
@@ -302,6 +443,15 @@ This shows we're not being dogmatic - some libraries are genuinely valuable -->
 - **Industry-wide trend**
 - **Corporate consolidation impact**
 
+<!-- poll:
+question: "Have you experienced using an abandoned/orphaned package?"
+options:
+- "😱 Yes, and it broke our production"
+- "😟 Yes, but we managed to work around it"
+- "😅 Not yet, but I'm worried about it"
+- "🍀 Nope, we're lucky so far"
+-->
+
 <!-- Speaker notes:
 This is the harsh reality check.
 "Because Timex solved such a necessary problem it is now a pervasive transient dependency.
@@ -325,7 +475,16 @@ Make this personal - this affects everyone in the room -->
 - **Customization**: Adapt to your use case
 - **Transparency**: See exactly what you're using
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "Using LLMs to copy/adapt open source code into your project:"
+options:
+- "🔥 Brilliant! Modern problems need modern solutions"
+- "🤔 Interesting but I have concerns"
+- "😱 Absolutely not! That's wrong"
+- "🍿 Already doing this, glad someone said it"
+-->
+
+<!-- Speaker notes:
 🌶️ SPICY TAKE INCOMING - This is the controversial but practical solution
 "Now there is an easier way. Use an LLM and import the dependency code directly into your codebase."
 
@@ -345,7 +504,16 @@ This is where you'll get some reactions - lean into it! -->
 - **Distillery**: Release management became built-in
 - **Pattern**: Community libraries → Core features
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "Have you used Timex or Distillery in past projects?"
+options:
+- "⏰ Yes, Timex was essential for date/time"
+- "📦 Yes, Distillery for releases before mix release"
+- "👏 Both! They were game-changers"
+- "🆕 Neither, joined Elixir after they were needed"
+-->
+
+<!-- Speaker notes:
 This provides historical context and shows this isn't a new idea.
 "Both solved core problems that were unhandled by Elixir in the v0 days" - this legitimizes the approach -->
 
@@ -372,7 +540,16 @@ end
 
 **That's maybe 10% of what Timex does!**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "When you use Timex, how much of its functionality do you actually need?"
+options:
+- "📊 10-25% - just basic operations"
+- "🗺 25-50% - moderate usage"
+- "📦 50%+ - we use lots of features"
+- "🤷 No idea, I just import and use what I need"
+-->
+
+<!-- Speaker notes:
 This is the concrete example that makes it real.
 "A good example would be Timex, the popular date/time library in Elixir.
 Timex is powerful and covers a huge surface area: parsing/formatting dates in many locales, time zone handling, shifting by arbitrary intervals, interval math, comparisons, durations, calendars, etc.
@@ -398,8 +575,17 @@ Show the code, emphasize "That's maybe 10% of what Timex does!" -->
 - **Cite directly if your project is open source**
 - **Embrace the tools at hand**
 
-<!-- Speaker notes: 
-"Modern Problems call for modern solutions. Copy the (open) source in your project directly. 
+<!-- poll:
+question: "How do you currently handle code reuse?"
+options:
+- "📦 Add dependencies and trust them"
+- "🔄 Copy-paste from Stack Overflow"
+- "🤖 Use LLMs to adapt existing code"
+- "✏️ Write everything from scratch"
+-->
+
+<!-- Speaker notes:
+"Modern Problems call for modern solutions. Copy the (open) source in your project directly.
 Leverage an LLM to do this. Include a reference breadcrumb back to the original. Or cite it directly if your project is also open source."
 
 This addresses the ethical concerns - we're not stealing, we're adapting -->
@@ -419,8 +605,17 @@ This addresses the ethical concerns - we're not stealing, we're adapting -->
 
 **"Be explicit"** - Have your code tell you what it does
 
-<!-- Speaker notes: 
-"The old paradigm of writing and maintaining code is dead and dying. Embrace the tools at hand. 
+<!-- poll:
+question: "What's your preferred development approach?"
+options:
+- "🚀 Ship fast, optimize later"
+- "📜 Write explicit, understandable code"
+- "🤖 Leverage AI/LLMs to accelerate development"
+- "⚖️ Balance of all approaches"
+-->
+
+<!-- Speaker notes:
+"The old paradigm of writing and maintaining code is dead and dying. Embrace the tools at hand.
 One of the core principals of Elixir is: Be explicit. Have your code tell you what it does. Don't rely on indirection or magic."
 
 Connect this back to Elixir's philosophy -->
@@ -440,7 +635,16 @@ Connect this back to Elixir's philosophy -->
 - **Kubernetes is frankly insane**
 - **Almost no one should use K8s**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your current deployment strategy?"
+options:
+- "🏗️ Kubernetes (because everyone else does it)"
+- "📦 Docker containers on cloud platforms"
+- "🚀 Simple VPS with systemd/releases"
+- "😅 FTP to shared hosting (don't judge me)"
+-->
+
+<!-- Speaker notes:
 Callback to the original point about complexity in apps and deployments.
 "Modern app deployment is too complex. There are too many layers. And the app you write can do most of the things that you are relying on additional layers to handle."
 
@@ -465,9 +669,18 @@ This is where you can be more direct: "Kubernetes is frankly insane. Almost no o
 - **Grow organically**
 - **Avoid premature optimization**
 
-<!-- Speaker notes: 
-"Deploy your elixir code to a single server. Don't add anything else until you need to. 
-Scale the node vertically first (more CPUs/Memory/Resources). Only scale horizontally when you need to. 
+<!-- poll:
+question: "When do you typically start thinking about scaling?"
+options:
+- "😅 Day 1 - gotta be ready for viral success!"
+- "📊 When performance metrics show bottlenecks"
+- "💸 When we actually have money to spend on it"
+- "😱 When the server catches fire"
+-->
+
+<!-- Speaker notes:
+"Deploy your elixir code to a single server. Don't add anything else until you need to.
+Scale the node vertically first (more CPUs/Memory/Resources). Only scale horizontally when you need to.
 Don't forget that application clustering is built into the BEAM by default. It's largely due to the modern abstraction monstrosity that is deployment orchestration (K8s) that you even need a library to manage your elixir clusters in the first place."
 
 This is the key insight - BEAM already handles clustering -->
@@ -486,7 +699,16 @@ This is the key insight - BEAM already handles clustering -->
 - **Single-node operation**
 - **Unless your company name rhymes with Frugal or Feta**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "Can you run your entire application stack locally?"
+options:
+- "✅ Yes - single command and everything works"
+- "🔄 Mostly - need a few external services"
+- "😅 Sort of - requires 47 Docker containers"
+- "😱 No way - too many microservices"
+-->
+
+<!-- Speaker notes:
 "At a minimum you should be able to run your whole application from your laptop. (without duplicating all of a multi-service deployment locally)"
 
 The "Frugal or Feta" line is a joke about Google/Meta - use it to lighten the mood -->
@@ -506,8 +728,17 @@ The "Frugal or Feta" line is a joke about Google/Meta - use it to lighten the mo
 - **All code written in Elixir**
 - **Everything is explicit**
 
-<!-- Speaker notes: 
-"Dogfood. This presentation is running in elixir. It's code that we had claude reimplement in elixir for this talk. 
+<!-- poll:
+question: "What presentation tools do you typically use?"
+options:
+- "🎨 PowerPoint/Keynote - the classics"
+- "🖥️ Google Slides/web-based tools"
+- "📝 Markdown-based (reveal.js, etc.)"
+- "🤓 Custom tools or code (like this one!)"
+-->
+
+<!-- Speaker notes:
+"Dogfood. This presentation is running in elixir. It's code that we had claude reimplement in elixir for this talk.
 This talk demo app has no dependencies. All the code is written in elixir and is part of the app. Everything is explicit."
 
 This is your proof of concept - you're literally demonstrating the principles while talking about them! -->
@@ -527,7 +758,16 @@ This is your proof of concept - you're literally demonstrating the principles wh
 - **HTTP server functionality**
 - **All built with pure Elixir**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How impressed are you with this custom presentation tool?"
+options:
+- "🤩 Mind blown - this is amazing!"
+- "👍 Pretty cool, nice proof of concept"
+- "🤔 Interesting but I'll stick with my tools"
+- "😴 Wake me when it's over"
+-->
+
+<!-- Speaker notes:
 This is where you transition to the live demo. The audience has been seeing this tool in action the whole time, but now you can highlight specific features.
 "Let's see it in action..." - build anticipation for the demo -->
 
@@ -536,18 +776,30 @@ This is where you transition to the live demo. The audience has been seeing this
 # Key Takeaways
 
 ## 1. **You Can Do More Than You Think**
+
 - SSH, HTTP, caching, storage - all built-in
 - No external dependencies required
 
 ## 2. **Evaluate Dependencies Honestly**
+
 - Active support, corporate backing, necessity
 - Consider copying source vs. adding deps
 
 ## 3. **Scale Vertically First**
+
 - Start simple, grow organically
 - Avoid premature complexity
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "Which takeaway resonates most with you?"
+options:
+- "🚀 Elixir can do more than I thought"
+- "🤔 Need to rethink dependency strategy"
+- "🏗️ Start simple, scale when needed"
+- "🤖 LLMs can help with code adaptation"
+-->
+
+<!-- Speaker notes:
 Summarize the three main points clearly. This is your conclusion slide.
 Emphasize each takeaway - these are the actionable insights you want people to remember.
 "Sometimes the future means going back to fundamentals that actually work" -->
@@ -565,7 +817,16 @@ Emphasize each takeaway - these are the actionable insights you want people to r
 
 ![Man Coding](priv/assets/man-coding.png)
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What topic would you like to discuss first?"
+options:
+- "📊 Dependency evaluation strategies"
+- "🚀 Deployment simplification approaches"
+- "🤖 LLM-assisted development practices"
+- "⚡ Hidden Elixir/OTP capabilities"
+-->
+
+<!-- Speaker notes:
 Open the floor for questions. Be prepared for:
 - Pushback on the "copy source" approach
 - Questions about when dependencies ARE appropriate
@@ -586,7 +847,16 @@ This is where you can address concerns and reinforce your points -->
 - **Questions?** Let's discuss!
 - **Remember**: Be explicit, start simple, scale smart
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "How would you rate this presentation overall?"
+options:
+- "🤩 Fantastic - changed my perspective!"
+- "👍 Good - learned some useful things"
+- "🤔 Okay - some interesting points"
+- "😅 Too spicy for my taste"
+-->
+
+<!-- Speaker notes:
 End strong with the tagline: "Zero Dependencies, Infinite Possibilities"
 This reinforces your main message and gives people something memorable to take away.
 "Remember: Be explicit, start simple, scale smart" - this is your call to action -->
@@ -596,16 +866,27 @@ This reinforces your main message and gives people something memorable to take a
 # Contact & Resources
 
 ## Project Links
+
 - **Repository**: github.com/ckochx/ElixirNoDeps
 - **This Presentation**: Running live in Elixir!
 - **Examples**: All code available on GitHub
 
 ## Stay Connected
+
 - **Elixir Forum**: elixirforum.com
 - **Elixir Slack**: elixir-lang.slack.com
 - **Twitter**: @elixirlang
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What are you most interested in exploring after this talk?"
+options:
+- "🚀 Building something with pure Elixir"
+- "📊 Auditing my project's dependencies"
+- "🤖 Trying LLM-assisted development"
+- "💬 Discussing these ideas with my team"
+-->
+
+<!-- Speaker notes:
 Provide clear next steps for people who want to learn more.
 Emphasize "This Presentation: Running live in Elixir!" - it's still your proof of concept -->
 
@@ -615,7 +896,7 @@ Emphasize "This Presentation: Running live in Elixir!" - it's still your proof o
 
 **"Simplicity is the ultimate sophistication -- Leonardo da Vinci (apocryphal)"**
 
-**"Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it’s worth it in the end because once you get there, you can move mountains -- Steve Jobs"**
+**"Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it's worth it in the end because once you get there, you can move mountains -- Steve Jobs"**
 
 **"Simplicity is a prerequisite for reliability -- Edsger W. Dijkstra"**
 
@@ -625,7 +906,16 @@ ElixirNoDeps proves that powerful tools don't need complex dependencies.
 
 **Thank you for your attention!**
 
-<!-- Speaker notes: 
+<!-- poll:
+question: "What's your next step after leaving this talk?"
+options:
+- "☕ Coffee break and process everything"
+- "📝 Take notes and plan changes"
+- "📱 Connect with other attendees"
+- "🚀 Go build something awesome!"
+-->
+
+<!-- Speaker notes:
 End with the quote: "Simplicity is the ultimate sophistication"
 This ties everything together - you're advocating for simplicity in a complex world.
 "Modern problems require modern solutions" - this justifies the LLM approach.

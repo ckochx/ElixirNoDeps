@@ -103,10 +103,12 @@ defmodule ElixirNoDeps.Presenter.Parser do
       |> Enum.with_index(1)
       |> Enum.map(fn {slide_content, index} ->
         {clean_content, speaker_notes} = extract_speaker_notes(slide_content)
+        {final_content, poll_data} = extract_poll_data(clean_content)
 
-        Slide.new(clean_content,
+        Slide.new(final_content,
           slide_number: index,
-          speaker_notes: speaker_notes
+          speaker_notes: speaker_notes,
+          poll_data: poll_data
         )
       end)
     end
@@ -125,6 +127,34 @@ defmodule ElixirNoDeps.Presenter.Parser do
       [full_match, notes] ->
         clean_content = String.replace(content, full_match, "")
         {String.trim(clean_content), String.trim(notes)}
+
+      nil ->
+        {content, nil}
+    end
+  end
+
+  @doc """
+  Extracts poll data from HTML comments in slide content.
+
+  Poll format:
+  <!-- poll:
+  question: "What's your favorite language?"
+  options:
+  - Elixir
+  - Python
+  - JavaScript
+  - Rust
+  -->
+  """
+  @spec extract_poll_data(String.t()) :: {String.t(), map() | nil}
+  def extract_poll_data(content) do
+    poll_regex = ~r/<!--\s*poll:\s*(.*?)\s*-->/s
+
+    case Regex.run(poll_regex, content) do
+      [full_match, poll_yaml] ->
+        clean_content = String.replace(content, full_match, "")
+        poll_data = parse_poll_yaml(poll_yaml)
+        {String.trim(clean_content), poll_data}
 
       nil ->
         {content, nil}
@@ -171,5 +201,55 @@ defmodule ElixirNoDeps.Presenter.Parser do
     value
     |> String.trim()
     |> String.replace(~r/^["']|["']$/, "")
+  end
+
+  # Parse poll YAML data
+  @spec parse_poll_yaml(String.t()) :: map() | nil
+  defp parse_poll_yaml(poll_yaml) do
+    lines = String.split(poll_yaml, "\n") |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+
+    try do
+      {question, remaining_lines} = extract_question(lines)
+      options = extract_options(remaining_lines)
+
+      if question && length(options) > 0 do
+        %{
+          question: question,
+          options: options,
+          type: "multiple_choice"
+        }
+      else
+        nil
+      end
+    rescue
+      _ -> nil
+    end
+  end
+
+  defp extract_question(lines) do
+    case Enum.find_index(lines, &String.starts_with?(&1, "question:")) do
+      nil ->
+        {nil, lines}
+
+      index ->
+        question_line = Enum.at(lines, index)
+        question = String.replace(question_line, ~r/^question:\s*/, "") |> String.trim("\"")
+        remaining = Enum.drop(lines, index + 1)
+        {question, remaining}
+    end
+  end
+
+  defp extract_options(lines) do
+    case Enum.find_index(lines, &(&1 == "options:")) do
+      nil ->
+        []
+
+      start_index ->
+        lines
+        |> Enum.drop(start_index + 1)
+        |> Enum.take_while(&String.starts_with?(&1, "-"))
+        |> Enum.map(&(String.replace(&1, ~r/^-\s*/, "") |> String.trim()))
+        |> Enum.reject(&(&1 == ""))
+    end
   end
 end
