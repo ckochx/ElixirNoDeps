@@ -250,7 +250,7 @@ defmodule ElixirNoDeps.RemotePresenter do
     ## For Presenters (You)
     1. **Connect phone** to the same network as this laptop
     2. **Go to:** `http://#{local_ip}:#{web_port}`
-    3. **Choose "Presenter"** and enter password: `jerry`
+    3. **Choose "Presenter"** and enter your password
     4. **Control slides** with speaker notes and timing
 
     ## For Audience (50+ people supported!)
@@ -264,7 +264,7 @@ defmodule ElixirNoDeps.RemotePresenter do
     - **Multiple devices** can connect simultaneously
     - **Terminal stays clean** for projection
 
-    <!-- Speaker notes: Test the connection now! Go to the URL on your phone, choose Presenter, and enter password "jerry". The audience can also follow along by choosing "Audience" - perfect for conferences! -->
+    <!-- Speaker notes: Test the connection now! Go to the URL on your phone, choose Presenter, and enter your password. The audience can also follow along by choosing "Audience" - perfect for conferences! -->
 
     ---
     """
