@@ -474,7 +474,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
         <script>
             let currentSlide = 1;
             let totalSlides = 1;
-            const SLIDE_WARNING_THRESHOLD = 40; // seconds
+            const SLIDE_WARNING_THRESHOLD = 35; // seconds
             let slideStartTime = null;
             let lastSlideNumber = null;
 
