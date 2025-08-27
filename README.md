@@ -38,8 +38,8 @@ cd ElixirNoDeps
 # 7. Install the exact versions specified in .tool-versions
 asdf install
 
-# 8. Build the presentation tool
-mix escript.build
+# 8. Build the presentation tools
+./scripts/build_scripts.sh
 
 # 9. Try it out!
 ./present sample_presentation.md
@@ -65,8 +65,12 @@ brew install --cask iterm2
 
 ```bash
 # From project root
-asdf install           # if you use asdf (recommended)
-mix escript.build      # builds the `present` executable
+asdf install                # if you use asdf (recommended)
+./scripts/build_scripts.sh  # builds both `present` and `remote_present` executables
+
+# Or build individually:
+mix escript.build                           # builds the `present` executable
+MIX_ESCRIPT_NAME=remote_present mix escript.build  # builds the `remote_present` executable
 ```
 
 ## Usage
@@ -83,6 +87,20 @@ mix present path/to/slides.md
 
 ```bash
 ./present path/to/slides.md
+```
+
+### Remote control presentation
+
+- With Mix (works everywhere):
+
+```bash
+mix remote_present path/to/slides.md
+```
+
+- With escript (generates `remote_present` in project root):
+
+```bash
+./remote_present path/to/slides.md
 ```
 
 ### Navigation
@@ -107,12 +125,18 @@ Control your presentation from your phone while the audience sees a clean termin
 ```bash
 # Start presentation with remote control
 mix remote_present slides.md
+# OR
+./remote_present slides.md
 
-# Or with custom port
+# With custom port
 mix remote_present slides.md --port 3000
+# OR
+./remote_present slides.md --port 3000
 
 # Try the demo
 mix remote_present --demo
+# OR
+./remote_present --demo
 ```
 
 ### How It Works
@@ -135,6 +159,8 @@ mix remote_present --demo
 
 ```bash
 mix remote_present slides.md
+# OR
+./remote_present slides.md
 ```
 
 **Step 4: Connect to displayed URL on your phone**
