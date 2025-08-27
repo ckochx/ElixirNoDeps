@@ -119,11 +119,6 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
 
     # Debug: print the command we're about to run
     cmd_args = ["-display", "none", image_path, "-resize", "#{width}x#{height}", "sixel:-"]
-    IO.puts("DEBUG: Running magick #{Enum.join(cmd_args, " ")}")
-    IO.puts("DEBUG: Width: #{width}, Height: #{height}")
-    IO.puts("DEBUG: Options passed: #{inspect(opts)}")
-    IO.puts("DEBUG: Current working directory: #{File.cwd!()}")
-    IO.puts("DEBUG: Image file exists? #{File.exists?(image_path)}")
 
     # For GIFs, check if we're on Debian and use first frame only for performance
     result = if String.ends_with?(String.downcase(image_path), ".gif") do
@@ -133,17 +128,13 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
       end
       
       if is_debian do
-        IO.puts("DEBUG: Debian detected - using GIF first frame only for performance")
         gif_cmd_args = ["-display", "none", "#{image_path}[0]", "-resize", "#{width}x#{height}", "sixel:-"]
         System.cmd("magick", gif_cmd_args, stderr_to_stdout: true)
       else
-        IO.puts("DEBUG: Non-Debian system - attempting full GIF rendering")
         case System.cmd("img2sixel", [image_path], stderr_to_stdout: true) do
           {sixel_data, 0} -> 
-            IO.puts("DEBUG: img2sixel successful")
             {:ok, sixel_data}
           {error, _} ->
-            IO.puts("DEBUG: img2sixel failed: #{error}, falling back to ImageMagick")
             System.cmd("magick", cmd_args, stderr_to_stdout: true)
         end
       end
@@ -153,11 +144,8 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
 
     case result do
       {sixel_data, 0} -> 
-        IO.puts("DEBUG: Sixel conversion successful")
         {:ok, sixel_data}
       {error, exit_code} -> 
-        IO.puts("DEBUG: Sixel conversion failed with exit code #{exit_code}")
-        IO.puts("DEBUG: Error output: #{error}")
         {:error, "ImageMagick failed: #{error}"}
     end
   end

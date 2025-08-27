@@ -54,7 +54,6 @@ defmodule ElixirNoDeps.AsciiImage do
 
   defp pixel_rgb_value(pixel) do
     pixel
-    # |> dbg()
     |> Enum.at(-1)
     |> String.slice(5..-2//1)
     |> String.split(",")

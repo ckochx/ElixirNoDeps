@@ -296,7 +296,6 @@ defmodule ElixirNoDeps.Presenter.Renderer do
         # Determine sizing based on alt text
         # Scale pixel dimensions based on terminal width (rough approximation: 8 pixels per character)
         # Add safety checks to prevent crashes
-        IO.puts("DEBUG: max_width received: #{inspect(max_width)}")
         safe_max_width = max(max_width || 80, 40)  # Fallback if max_width is nil/invalid
         # Scale down aggressively for narrow terminals (likely zoomed in)
         scale_factor = cond do
@@ -311,7 +310,6 @@ defmodule ElixirNoDeps.Presenter.Renderer do
             safe_max_width * 6
         end
         base_scale = scale_factor
-        IO.puts("DEBUG: safe_max_width: #{safe_max_width}, base_scale: #{base_scale}")
         
         opts = case alt_text do
           "small" -> [width: div(base_scale, 2), height: div(base_scale, 3)]
