@@ -1923,20 +1923,20 @@ defmodule ElixirNoDeps.WebRemoteServer do
     custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r" end)
 
     default_headers = [
-      "Content-Type: #{content_type}\r",
-      "Content-Length: #{content_length}\r",
-      "Connection: close\r",
-      "Access-Control-Allow-Origin: *\r",
-      "Access-Control-Allow-Methods: GET, POST, OPTIONS\r",
-      "Access-Control-Allow-Headers: Content-Type\r"
+      "Content-Type: #{content_type}\r\n",
+      "Content-Length: #{content_length}\r\n",
+      "Connection: close\r\n",
+      "Access-Control-Allow-Origin: *\r\n",
+      "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n",
+      "Access-Control-Allow-Headers: Content-Type\r\n"
     ]
 
     all_headers = custom_headers ++ default_headers
 
     """
-    HTTP/1.1 #{status_code} #{status_text}\r
+    HTTP/1.1 #{status_code} #{status_text}\r\n
     #{Enum.join(all_headers, "")}
-    \r
+    \r\n
     #{body}
     """
   end
