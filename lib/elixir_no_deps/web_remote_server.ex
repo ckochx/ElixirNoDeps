@@ -1579,44 +1579,67 @@ defmodule ElixirNoDeps.WebRemoteServer do
   end
 
   defp handle_presenter_login(request) do
+    IO.puts("\n=== PRESENTER LOGIN DEBUG ===")
+    IO.puts("Raw request received:")
+    IO.puts(String.slice(request, 0, 500))
+    IO.puts("========================")
+
     # Extract the POST body from the request
     request_parts = String.split(request, "\r\n\r\n", parts: 2)
 
     body =
       case request_parts do
-        [_headers, post_body] -> post_body
-        _ -> ""
+        [_headers, post_body] -> 
+          IO.puts("POST body extracted: #{inspect(post_body)}")
+          post_body
+        _ -> 
+          IO.puts("No POST body found")
+          ""
       end
 
     # Parse form data (simple URL-encoded parsing)
     password =
       case String.contains?(body, "password=") do
         true ->
-          body
+          parsed_password = body
           |> String.split("&")
           |> Enum.find(&String.starts_with?(&1, "password="))
           |> case do
             "password=" <> pass -> URI.decode_www_form(pass)
             nil -> ""
           end
+          IO.puts("Parsed password: #{inspect(parsed_password)}")
+          parsed_password
 
         false ->
+          IO.puts("No password field found in body")
           ""
       end
 
     # Check password using hash-based authentication
-    if verify_presenter_password(password) do
+    password_valid = verify_presenter_password(password)
+    IO.puts("Password validation result: #{password_valid}")
+
+    if password_valid do
+      IO.puts("Password valid - creating session")
       # Create session token and redirect to presenter control interface
       session_token = create_presenter_session()
+      IO.puts("Session token created: #{String.slice(session_token, 0, 10)}...")
 
       build_http_response(302, "text/html", "", [
         {"Location", "/presenter/control"},
         {"Set-Cookie", "presenter_session=#{session_token}; Path=/; HttpOnly; SameSite=Strict"}
       ])
     else
+      IO.puts("Password invalid - showing error")
       # Show login page with error
       serve_presenter_login_error()
     end
+  rescue
+    error ->
+      IO.puts("ERROR in handle_presenter_login: #{inspect(error)}")
+      IO.puts("Stacktrace: #{Exception.format_stacktrace(__STACKTRACE__)}")
+      serve_error(500, "Login error")
   end
 
   defp serve_presenter_login_error do
@@ -2178,26 +2201,40 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Create a new presenter session token
   defp create_presenter_session() do
-    # Ensure ETS table exists
-    ensure_ets_table()
-
+    IO.puts("Creating presenter session...")
+    
     # Generate a secure random token
     token = :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
+    IO.puts("Generated token: #{String.slice(token, 0, 10)}...")
 
     # Store session with 24 hour expiration
     expiry = DateTime.utc_now() |> DateTime.add(24, :hour)
+    IO.puts("Session expiry: #{expiry}")
 
     # Store in ETS (reuse the poll storage table)
-    :ets.insert(:poll_votes, {{"session", token}, expiry})
+    try do
+      :ets.insert(:poll_votes, {{"session", token}, expiry})
+      IO.puts("Session stored successfully in ETS")
+    rescue
+      error ->
+        IO.puts("ERROR storing session in ETS: #{inspect(error)}")
+        # Try to create the table if it doesn't exist
+        try do
+          :ets.new(:poll_votes, [:named_table, :public, :set])
+          :ets.insert(:poll_votes, {{"session", token}, expiry})
+          IO.puts("Created ETS table and stored session")
+        rescue
+          error2 ->
+            IO.puts("ERROR creating ETS table: #{inspect(error2)}")
+            raise error2
+        end
+    end
 
     token
   end
 
   # Verify a presenter session token
   defp verify_presenter_session(token) do
-    # Ensure ETS table exists
-    ensure_ets_table()
-
     case :ets.lookup(:poll_votes, {"session", token}) do
       [{_, expiry}] ->
         # Check if session hasn't expired
@@ -2217,16 +2254,5 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
     # Constant-time comparison to prevent timing attacks
     stored_hash == input_hash
-  end
-
-  # Ensure ETS table exists for session storage
-  defp ensure_ets_table do
-    case :ets.whereis(:poll_votes) do
-      :undefined ->
-        :ets.new(:poll_votes, [:named_table, :public, :set])
-        :ok
-      _ ->
-        :ok
-    end
   end
 end
