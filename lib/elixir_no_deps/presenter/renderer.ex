@@ -298,22 +298,26 @@ defmodule ElixirNoDeps.Presenter.Renderer do
         # Add safety checks to prevent crashes
         IO.puts("DEBUG: max_width received: #{inspect(max_width)}")
         safe_max_width = max(max_width || 80, 40)  # Fallback if max_width is nil/invalid
-        # Scale down significantly for narrow terminals (likely zoomed in)
-        scale_factor = if safe_max_width < 80 do
-          # Small terminal - use much smaller images
-          safe_max_width * 3  
-        else
-          # Normal terminal - use standard scaling
-          safe_max_width * 6
+        # Scale down aggressively for narrow terminals (likely zoomed in)
+        scale_factor = cond do
+          safe_max_width < 70 -> 
+            # Very small/zoomed terminal - tiny images
+            100
+          safe_max_width < 100 -> 
+            # Small terminal - small images
+            150
+          true -> 
+            # Normal terminal - standard scaling
+            safe_max_width * 6
         end
-        base_scale = max(scale_factor, 200)  # Minimum 200px for very small terminals
+        base_scale = scale_factor
         IO.puts("DEBUG: safe_max_width: #{safe_max_width}, base_scale: #{base_scale}")
         
         opts = case alt_text do
-          "small" -> [width: max(div(base_scale, 2), 200), height: max(div(base_scale, 3), 150)]
+          "small" -> [width: div(base_scale, 2), height: div(base_scale, 3)]
           "large" -> [width: min(base_scale * 2, 800), height: min(base_scale, 600)]
-          "thumbnail" -> [width: max(div(base_scale, 3), 150), height: max(div(base_scale, 4), 100)]
-          _ -> [width: max(base_scale, 400), height: max(div(base_scale * 3, 4), 300)]
+          "thumbnail" -> [width: div(base_scale, 3), height: div(base_scale, 4)]
+          _ -> [width: base_scale, height: div(base_scale * 3, 4)]
         end
         
         try do
