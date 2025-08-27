@@ -295,10 +295,10 @@ defmodule ElixirNoDeps.Presenter.Renderer do
       [_, alt_text, image_path] ->
         # Determine sizing based on alt text
         opts = case alt_text do
-          "small" -> [width: max(div(max_width, 2), 20), height: 8]
-          "large" -> [width: min(max_width, 60), height: 15]
-          "thumbnail" -> [width: max(div(max_width, 3), 15), height: 5]
-          _ -> [width: max(div(max_width * 2, 3), 30), height: 10]
+          "small" -> [width: 300, height: 200]
+          "large" -> [width: 600, height: 400]
+          "thumbnail" -> [width: 200, height: 150]
+          _ -> [width: 500, height: 350]
         end
         
         ImageRenderer.render_image(image_path, opts)

@@ -120,6 +120,8 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     # Debug: print the command we're about to run
     cmd_args = ["-display", "none", image_path, "-resize", "#{width}x#{height}", "sixel:-"]
     IO.puts("DEBUG: Running magick #{Enum.join(cmd_args, " ")}")
+    IO.puts("DEBUG: Width: #{width}, Height: #{height}")
+    IO.puts("DEBUG: Options passed: #{inspect(opts)}")
     IO.puts("DEBUG: Current working directory: #{File.cwd!()}")
     IO.puts("DEBUG: Image file exists? #{File.exists?(image_path)}")
 
