@@ -2156,19 +2156,35 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Session-based authentication for presenter routes
   defp handle_authenticated_presenter_route(request) do
+    IO.puts("\n=== PRESENTER CONTROL DEBUG ===")
+    IO.puts("Handling /presenter/control request")
+    
     case extract_session_token(request) do
       {:ok, token} when is_binary(token) ->
-        if verify_presenter_session(token) do
+        IO.puts("Session token found: #{String.slice(token, 0, 10)}...")
+        
+        session_valid = verify_presenter_session(token)
+        IO.puts("Session validation result: #{session_valid}")
+        
+        if session_valid do
+          IO.puts("Session valid - serving controller interface")
           serve_controller_interface()
         else
+          IO.puts("Session invalid/expired - redirecting to login")
           # Invalid or expired session, redirect to login
           build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
         end
 
-      _ ->
+      {:error, reason} ->
+        IO.puts("No session token found: #{inspect(reason)}")
         # No session token, redirect to login
         build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
     end
+  rescue
+    error ->
+      IO.puts("ERROR in handle_authenticated_presenter_route: #{inspect(error)}")
+      IO.puts("Stacktrace: #{Exception.format_stacktrace(__STACKTRACE__)}")
+      serve_error(500, "Presenter control error")
   end
 
   # Extract session token from request cookies
