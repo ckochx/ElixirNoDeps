@@ -9,7 +9,7 @@ defmodule ElixirNoDeps.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      escript: escript()
+      escript: escript_config()
       # no deps
       # deps: deps()
     ]
@@ -23,10 +23,18 @@ defmodule ElixirNoDeps.MixProject do
     ]
   end
 
-  defp escript do
-    [
-      main_module: ElixirNoDeps.Presenter.CLI,
-      name: "present"
-    ]
+  defp escript_config do
+    case System.get_env("MIX_ESCRIPT_NAME") do
+      "remote_present" ->
+        [
+          main_module: ElixirNoDeps.RemotePresenter.CLI,
+          name: "remote_present"
+        ]
+      _ ->
+        [
+          main_module: ElixirNoDeps.Presenter.CLI,
+          name: "present"
+        ]
+    end
   end
 end
