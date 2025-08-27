@@ -188,7 +188,7 @@ defmodule ElixirNoDeps.Presenter.AsciiProcessor do
   defp get_ascii_matrix(image_path) do
     try do
       # This mirrors the logic from AsciiImage but returns instead of printing
-      {raw_pixel_data, 0} = System.cmd("magick", [image_path, "-resize", "250", "sparse-color:"])
+      {raw_pixel_data, 0} = System.cmd("magick", ["-display", "none", image_path, "-resize", "250", "sparse-color:"])
 
       raw_pixel_data
       |> String.split()

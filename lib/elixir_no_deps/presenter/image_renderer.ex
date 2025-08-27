@@ -118,6 +118,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     height = Keyword.get(opts, :height, 250)
 
     case System.cmd("magick", [
+           "-display", "none",
            image_path,
            "-resize",
            "#{width}x#{height}",

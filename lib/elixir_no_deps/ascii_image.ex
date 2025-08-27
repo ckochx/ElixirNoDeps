@@ -24,7 +24,7 @@ defmodule ElixirNoDeps.AsciiImage do
   end
 
   defp ascii_matrix(img_path) do
-    {raw_pixel_data, 0} = System.cmd("magick", [img_path, "-resize", "250", "sparse-color:"])
+    {raw_pixel_data, 0} = System.cmd("magick", ["-display", "none", img_path, "-resize", "250", "sparse-color:"])
 
     raw_pixel_data
     |> String.split()
