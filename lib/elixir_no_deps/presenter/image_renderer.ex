@@ -125,17 +125,27 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     IO.puts("DEBUG: Current working directory: #{File.cwd!()}")
     IO.puts("DEBUG: Image file exists? #{File.exists?(image_path)}")
 
-    # For GIFs, try without resizing first for better performance
+    # For GIFs, check if we're on Debian and use first frame only for performance
     result = if String.ends_with?(String.downcase(image_path), ".gif") do
-      IO.puts("DEBUG: Processing GIF without resizing for performance")
-      case System.cmd("img2sixel", [image_path], stderr_to_stdout: true) do
-        {sixel_data, 0} -> 
-          IO.puts("DEBUG: img2sixel successful (no resize)")
-          {:ok, sixel_data}
-        {error, _} ->
-          IO.puts("DEBUG: img2sixel failed: #{error}, trying ImageMagick without resize")
-          gif_cmd_args = ["-display", "none", image_path, "sixel:-"]
-          System.cmd("magick", gif_cmd_args, stderr_to_stdout: true)
+      is_debian = case System.cmd("lsb_release", ["-i"], stderr_to_stdout: true) do
+        {output, 0} -> String.contains?(String.downcase(output), "debian")
+        _ -> false
+      end
+      
+      if is_debian do
+        IO.puts("DEBUG: Debian detected - using GIF first frame only for performance")
+        gif_cmd_args = ["-display", "none", "#{image_path}[0]", "-resize", "#{width}x#{height}", "sixel:-"]
+        System.cmd("magick", gif_cmd_args, stderr_to_stdout: true)
+      else
+        IO.puts("DEBUG: Non-Debian system - attempting full GIF rendering")
+        case System.cmd("img2sixel", [image_path], stderr_to_stdout: true) do
+          {sixel_data, 0} -> 
+            IO.puts("DEBUG: img2sixel successful")
+            {:ok, sixel_data}
+          {error, _} ->
+            IO.puts("DEBUG: img2sixel failed: #{error}, falling back to ImageMagick")
+            System.cmd("magick", cmd_args, stderr_to_stdout: true)
+        end
       end
     else
       System.cmd("magick", cmd_args, stderr_to_stdout: true)
