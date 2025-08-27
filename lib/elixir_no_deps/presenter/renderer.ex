@@ -294,11 +294,14 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     case Regex.run(~r/!\[([^\]]*)\]\(([^)]+)\)/, image_markdown) do
       [_, alt_text, image_path] ->
         # Determine sizing based on alt text
+        # Scale pixel dimensions based on terminal width (rough approximation: 8 pixels per character)
+        base_scale = max(max_width * 6, 400)  # Minimum 400px width for small terminals
+        
         opts = case alt_text do
-          "small" -> [width: 300, height: 200]
-          "large" -> [width: 600, height: 400]
-          "thumbnail" -> [width: 200, height: 150]
-          _ -> [width: 500, height: 350]
+          "small" -> [width: div(base_scale, 2), height: div(base_scale, 3)]
+          "large" -> [width: min(base_scale * 2, 800), height: min(base_scale, 600)]
+          "thumbnail" -> [width: div(base_scale, 3), height: div(base_scale, 4)]
+          _ -> [width: base_scale, height: div(base_scale * 3, 4)]
         end
         
         ImageRenderer.render_image(image_path, opts)
