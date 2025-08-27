@@ -117,15 +117,20 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     width = Keyword.get(opts, :width, 250)
     height = Keyword.get(opts, :height, 250)
 
-    case System.cmd("magick", [
-           "-display", "none",
-           image_path,
-           "-resize",
-           "#{width}x#{height}",
-           "sixel:-"
-         ]) do
-      {sixel_data, 0} -> {:ok, sixel_data}
-      {error, _} -> {:error, "ImageMagick failed: #{error}"}
+    # Debug: print the command we're about to run
+    cmd_args = ["-display", "none", image_path, "-resize", "#{width}x#{height}", "sixel:-"]
+    IO.puts("DEBUG: Running magick #{Enum.join(cmd_args, " ")}")
+    IO.puts("DEBUG: Current working directory: #{File.cwd!()}")
+    IO.puts("DEBUG: Image file exists? #{File.exists?(image_path)}")
+
+    case System.cmd("magick", cmd_args, stderr_to_stdout: true) do
+      {sixel_data, 0} -> 
+        IO.puts("DEBUG: Sixel conversion successful")
+        {:ok, sixel_data}
+      {error, exit_code} -> 
+        IO.puts("DEBUG: Sixel conversion failed with exit code #{exit_code}")
+        IO.puts("DEBUG: Error output: #{error}")
+        {:error, "ImageMagick failed: #{error}"}
     end
   end
 

@@ -125,6 +125,7 @@ defmodule ElixirNoDeps.Presenter.Navigator do
         {:reply, :ok, updated_presentation}
 
       {:quit} ->
+        restore_terminal()
         {:stop, :normal, :quit, presentation}
 
       {:error, _reason} ->
