@@ -12,9 +12,6 @@ defmodule ElixirNoDeps.WebRemoteServer do
   Default port is 8080.
   """
   def start(port \\ 8080) do
-    # Ensure ETS table exists for session storage
-    ensure_ets_table()
-
     {:ok, listen_socket} =
       :gen_tcp.listen(port, [
         :binary,
