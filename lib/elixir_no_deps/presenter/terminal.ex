@@ -93,7 +93,26 @@ defmodule ElixirNoDeps.Presenter.Terminal do
         {cols, rows}
 
       _ ->
-        {80, 24}
+        # Fallback to tput if :io.columns() fails (common on remote systems)
+        cols = case System.cmd("tput", ["cols"], stderr_to_stdout: true) do
+          {cols_str, 0} -> 
+            case Integer.parse(String.trim(cols_str)) do
+              {cols, _} -> cols
+              _ -> 80
+            end
+          _ -> 80
+        end
+        
+        rows = case System.cmd("tput", ["lines"], stderr_to_stdout: true) do
+          {rows_str, 0} -> 
+            case Integer.parse(String.trim(rows_str)) do
+              {rows, _} -> rows
+              _ -> 24
+            end
+          _ -> 24
+        end
+        
+        {cols, rows}
     end
   end
 

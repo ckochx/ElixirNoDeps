@@ -258,7 +258,7 @@ defmodule ElixirNoDeps.Presenter.Renderer do
     |> Enum.take(available_height - 3)
     
     # Render images on right side
-    rendered_images = render_images_for_layout(images, image_width)
+    rendered_images = render_images_for_layout(images, width)
     
     # Calculate layout positioning
     text_height = length(text_lines)
