@@ -298,13 +298,15 @@ defmodule ElixirNoDeps.Presenter.Renderer do
         # Add safety checks to prevent crashes
         IO.puts("DEBUG: max_width received: #{inspect(max_width)}")
         safe_max_width = max(max_width || 80, 40)  # Fallback if max_width is nil/invalid
-        # For Debian, ensure larger minimum size since terminal detection might be off
-        min_scale = case File.read("/etc/os-release") do
-          {:ok, content} -> 
-            if String.contains?(content, "debian") or String.contains?(content, "Debian"), do: 600, else: 400
-          _ -> 400  # Standard minimum
+        # Scale down significantly for narrow terminals (likely zoomed in)
+        scale_factor = if safe_max_width < 80 do
+          # Small terminal - use much smaller images
+          safe_max_width * 3  
+        else
+          # Normal terminal - use standard scaling
+          safe_max_width * 6
         end
-        base_scale = max(safe_max_width * 6, min_scale)
+        base_scale = max(scale_factor, 200)  # Minimum 200px for very small terminals
         IO.puts("DEBUG: safe_max_width: #{safe_max_width}, base_scale: #{base_scale}")
         
         opts = case alt_text do
