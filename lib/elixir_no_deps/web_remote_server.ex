@@ -72,6 +72,12 @@ defmodule ElixirNoDeps.WebRemoteServer do
       {"GET", "/audience"} ->
         serve_audience_interface()
 
+      {"GET", "/slideshow"} ->
+        serve_slideshow_interface()
+
+      {"GET", "/priv/" <> file_path} ->
+        serve_static_file("priv/" <> file_path)
+
       {"GET", "/api/status"} ->
         serve_presentation_status()
 
@@ -771,7 +777,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
             .role-cards {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr 1fr 1fr;
                 gap: 30px;
                 margin-top: 40px;
             }
@@ -812,12 +818,27 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 line-height: 1.4;
             }
 
-            @media (max-width: 480px) {
+            @media (max-width: 768px) {
                 .role-cards {
                     grid-template-columns: 1fr;
                     gap: 20px;
                 }
+            }
 
+            @media (min-width: 769px) and (max-width: 1024px) {
+                .role-cards {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                }
+
+                .role-card:nth-child(3) {
+                    grid-column: span 2;
+                    max-width: 400px;
+                    margin: 0 auto;
+                }
+            }
+
+            @media (max-width: 480px) {
                 .header h1 {
                     font-size: 2rem;
                 }
@@ -853,6 +874,14 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     <div class="role-title">Audience</div>
                     <div class="role-description">
                         Follow along with the live presentation slides
+                    </div>
+                </a>
+
+                <a href="/slideshow" class="role-card">
+                    <span class="role-icon">🎬</span>
+                    <div class="role-title">Slideshow</div>
+                    <div class="role-description">
+                        View presentation as an interactive slideshow with images
                     </div>
                 </a>
             </div>
@@ -1427,7 +1456,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         }
                     } else {
                         // Render regular slide content
-                        slideContentEl.innerHTML = '<div class="slide-text">' + (data.content || 'No content available').replace(/\\n/g, '<br>') + '</div>';
+                        var content = data.content || 'No content available';
+                        content = content.split('\n').join('<br>');
+                        slideContentEl.innerHTML = '<div class="slide-text">' + content + '</div>';
                     }
 
                 } catch (error) {
@@ -1759,6 +1790,438 @@ defmodule ElixirNoDeps.WebRemoteServer do
     """
 
     build_http_response(200, "text/html", body)
+  end
+
+  defp serve_slideshow_interface do
+    body = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Presentation Slideshow</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                color: white;
+                min-height: 100vh;
+                overflow: hidden;
+            }
+
+            .slideshow-container {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .slideshow-header {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                padding: 15px 30px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .presentation-title {
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+
+            .slide-counter {
+                font-size: 1rem;
+                opacity: 0.9;
+            }
+
+            .slide-main {
+                flex: 1;
+                display: flex;
+                padding: 40px;
+                gap: 40px;
+                overflow: hidden;
+            }
+
+            .slide-content-area {
+                flex: 2;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-width: 0;
+            }
+
+            .slide-title {
+                font-size: 3rem;
+                font-weight: bold;
+                margin-bottom: 30px;
+                text-align: center;
+                background: linear-gradient(45deg, #ffd700, #ffeb3b);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .slide-content {
+                font-size: 1.4rem;
+                line-height: 1.8;
+                white-space: pre-wrap;
+                overflow-y: auto;
+                max-height: 60vh;
+                padding-right: 20px;
+            }
+
+            .slide-images {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+                min-width: 0;
+            }
+
+            .slide-image {
+                max-width: 100%;
+                max-height: 300px;
+                object-fit: contain;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease;
+            }
+
+            .slide-image:hover {
+                transform: scale(1.05);
+            }
+
+            .slide-controls {
+                background: rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                padding: 20px 30px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .control-btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .control-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: translateY(-2px);
+            }
+
+            .control-btn:active {
+                transform: translateY(0);
+            }
+
+            .control-btn.primary {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                border-color: #764ba2;
+            }
+
+            .goto-section {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-left: 20px;
+            }
+
+            .goto-input {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 15px;
+                width: 80px;
+                text-align: center;
+                font-size: 1rem;
+            }
+
+            .goto-input::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .status-indicator {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            .status-connected {
+                background: rgba(76, 175, 80, 0.8);
+                color: white;
+            }
+
+            .status-disconnected {
+                background: rgba(244, 67, 54, 0.8);
+                color: white;
+            }
+
+            .loading {
+                opacity: 0.6;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 0.6; }
+                50% { opacity: 1; }
+            }
+
+            /* Markdown formatting styles */
+            .slide-content h1, .slide-content h2, .slide-content h3 {
+                color: #ffd700;
+                margin: 20px 0 10px 0;
+            }
+
+            .slide-content h1 { font-size: 2rem; }
+            .slide-content h2 { font-size: 1.6rem; }
+            .slide-content h3 { font-size: 1.3rem; }
+
+            .slide-content strong {
+                color: #ffeb3b;
+                font-weight: bold;
+            }
+
+            .slide-content em {
+                color: #e1bee7;
+                font-style: italic;
+            }
+
+            .slide-content code {
+                background: rgba(76, 175, 80, 0.2);
+                color: #a5d6a7;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-family: 'Monaco', 'Consolas', monospace;
+            }
+
+            .slide-content ul, .slide-content ol {
+                margin: 15px 0;
+                padding-left: 30px;
+            }
+
+            .slide-content li {
+                margin: 8px 0;
+                color: #bbdefb;
+            }
+
+            .slide-content ul li::marker {
+                content: "• ";
+                color: #64b5f6;
+            }
+
+            @media (max-width: 1024px) {
+                .slide-main {
+                    flex-direction: column;
+                    gap: 20px;
+                    padding: 20px;
+                }
+
+                .slide-title {
+                    font-size: 2rem;
+                    margin-bottom: 20px;
+                }
+
+                .slide-content {
+                    font-size: 1.2rem;
+                    max-height: 40vh;
+                }
+
+                .slide-controls {
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+
+                .goto-section {
+                    margin-left: 0;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .slideshow-header {
+                    padding: 10px 20px;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .slide-main {
+                    padding: 15px;
+                }
+
+                .slide-title {
+                    font-size: 1.5rem;
+                }
+
+                .slide-content {
+                    font-size: 1rem;
+                }
+
+                .control-btn {
+                    padding: 10px 16px;
+                    font-size: 0.9rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="slideshow-container">
+            <div class="slideshow-header">
+                <div class="presentation-title" id="presentation-title">Loading presentation...</div>
+                <div class="slide-counter">
+                    Slide <span id="current-slide">-</span> of <span id="total-slides">-</span>
+                </div>
+            </div>
+
+            <div id="connection-status" class="status-indicator status-disconnected">
+                🔄 Connecting...
+            </div>
+
+            <div class="slide-main">
+                <div class="slide-content-area">
+                    <div id="slide-title" class="slide-title">Loading...</div>
+                    <div id="slide-content" class="slide-content loading">
+                        Waiting for presentation to start...
+                    </div>
+                </div>
+                <div id="slide-images" class="slide-images">
+                    <!-- Images will be populated here -->
+                </div>
+            </div>
+
+            <div class="slide-controls">
+                <div style="flex: 1; text-align: center;">
+                    <span style="opacity: 0.7; font-size: 0.9rem;">📺 View-only mode - presentation controlled by presenter</span>
+                </div>
+
+                <a href="/" class="control-btn">
+                    🏠 Home
+                </a>
+            </div>
+        </div>
+
+        <script>
+            let currentSlide = 1;
+            let totalSlides = 1;
+            let isConnected = false;
+
+            async function updateSlideshow() {
+                try {
+                    const response = await fetch('/api/current');
+                    const data = await response.json();
+
+                    // Update connection status
+                    if (!isConnected) {
+                        isConnected = true;
+                        const statusEl = document.getElementById('connection-status');
+                        statusEl.textContent = 'Connected to live presentation';
+                        statusEl.className = 'status-indicator status-connected';
+                    }
+
+                    currentSlide = data.current_slide + 1; // Convert from 0-based
+
+                    // Update presentation info
+                    document.getElementById('presentation-title').textContent = data.presentation_title || 'Live Presentation';
+                    document.getElementById('current-slide').textContent = currentSlide;
+                    document.getElementById('total-slides').textContent = data.total_slides;
+                    document.getElementById('slide-title').textContent = data.title || 'Untitled Slide';
+
+                    // Handle poll slides vs regular slides
+                    const slideContentEl = document.getElementById('slide-content');
+                    slideContentEl.classList.remove('loading');
+
+                    if (data.poll_data && data.poll_data.question) {
+                        slideContentEl.innerHTML = '<div class="slide-text">Poll: ' + data.poll_data.question + '</div>';
+                    } else {
+                        // Render regular slide content - exactly like audience interface
+                        slideContentEl.innerHTML = '<div class="slide-text">' + (data.content || 'No content available') + '</div>';
+                    }
+
+                    // Clear images
+                    document.getElementById('slide-images').innerHTML = '';
+
+                } catch (error) {
+                    console.error('Failed to update slideshow:', error);
+
+                    // Update connection status
+                    isConnected = false;
+                    const statusEl = document.getElementById('connection-status');
+                    statusEl.textContent = 'Connection lost - attempting to reconnect';
+                    statusEl.className = 'status-indicator status-disconnected';
+
+                    // Show error in slide content
+                    document.getElementById('slide-title').textContent = 'Connection Error';
+                    document.getElementById('slide-content').textContent = 'Unable to connect to presentation. Please check your connection.';
+                    document.getElementById('slide-content').classList.add('loading');
+                }
+            }
+
+            // View-only mode - no navigation controls
+
+            // Start updating immediately and then every 2 seconds
+            updateSlideshow();
+            setInterval(updateSlideshow, 2000);
+        </script>
+    </body>
+    </html>
+    """
+
+    build_http_response(200, "text/html", body)
+  end
+
+  defp serve_static_file(file_path) do
+    case File.read(file_path) do
+      {:ok, content} ->
+        content_type = get_content_type(file_path)
+        build_http_response(200, content_type, content)
+
+      {:error, :enoent} ->
+        serve_error(404, "File not found")
+
+      {:error, _reason} ->
+        serve_error(500, "Internal server error")
+    end
+  end
+
+  defp get_content_type(file_path) do
+    case Path.extname(file_path) |> String.downcase() do
+      ".png" -> "image/png"
+      ".jpg" -> "image/jpeg"
+      ".jpeg" -> "image/jpeg"
+      ".gif" -> "image/gif"
+      ".svg" -> "image/svg+xml"
+      ".webp" -> "image/webp"
+      ".css" -> "text/css"
+      ".js" -> "application/javascript"
+      ".html" -> "text/html"
+      _ -> "application/octet-stream"
+    end
   end
 
   defp serve_current_slide_info do
