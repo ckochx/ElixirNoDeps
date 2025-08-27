@@ -125,16 +125,17 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     IO.puts("DEBUG: Current working directory: #{File.cwd!()}")
     IO.puts("DEBUG: Image file exists? #{File.exists?(image_path)}")
 
-    # For GIFs, try img2sixel first as it handles animation better
+    # For GIFs, try without resizing first for better performance
     result = if String.ends_with?(String.downcase(image_path), ".gif") do
-      IO.puts("DEBUG: Trying img2sixel for GIF animation")
-      case System.cmd("img2sixel", ["-w", "#{width}", "-h", "#{height}", image_path], stderr_to_stdout: true) do
+      IO.puts("DEBUG: Processing GIF without resizing for performance")
+      case System.cmd("img2sixel", [image_path], stderr_to_stdout: true) do
         {sixel_data, 0} -> 
-          IO.puts("DEBUG: img2sixel successful")
+          IO.puts("DEBUG: img2sixel successful (no resize)")
           {:ok, sixel_data}
         {error, _} ->
-          IO.puts("DEBUG: img2sixel failed: #{error}, falling back to ImageMagick")
-          System.cmd("magick", cmd_args, stderr_to_stdout: true)
+          IO.puts("DEBUG: img2sixel failed: #{error}, trying ImageMagick without resize")
+          gif_cmd_args = ["-display", "none", image_path, "sixel:-"]
+          System.cmd("magick", gif_cmd_args, stderr_to_stdout: true)
       end
     else
       System.cmd("magick", cmd_args, stderr_to_stdout: true)
