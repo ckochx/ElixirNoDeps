@@ -12,6 +12,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
   Default port is 8080.
   """
   def start(port \\ 8080) do
+    # Ensure ETS table exists for session storage
+    ensure_ets_table()
+
     {:ok, listen_socket} =
       :gen_tcp.listen(port, [
         :binary,
@@ -2175,6 +2178,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Create a new presenter session token
   defp create_presenter_session() do
+    # Ensure ETS table exists
+    ensure_ets_table()
+
     # Generate a secure random token
     token = :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
 
@@ -2189,6 +2195,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Verify a presenter session token
   defp verify_presenter_session(token) do
+    # Ensure ETS table exists
+    ensure_ets_table()
+
     case :ets.lookup(:poll_votes, {"session", token}) do
       [{_, expiry}] ->
         # Check if session hasn't expired
@@ -2208,5 +2217,16 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
     # Constant-time comparison to prevent timing attacks
     stored_hash == input_hash
+  end
+
+  # Ensure ETS table exists for session storage
+  defp ensure_ets_table do
+    case :ets.whereis(:poll_votes) do
+      :undefined ->
+        :ets.new(:poll_votes, [:named_table, :public, :set])
+        :ok
+      _ ->
+        :ok
+    end
   end
 end

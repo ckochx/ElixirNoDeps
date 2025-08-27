@@ -134,7 +134,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
         case System.cmd("img2sixel", [image_path], stderr_to_stdout: true) do
           {sixel_data, 0} -> 
             {:ok, sixel_data}
-          {error, _} ->
+          {_error, _} ->
             System.cmd("magick", cmd_args, stderr_to_stdout: true)
         end
       end
@@ -145,7 +145,7 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     case result do
       {sixel_data, 0} -> 
         {:ok, sixel_data}
-      {error, exit_code} -> 
+      {error, _exit_code} -> 
         {:error, "ImageMagick failed: #{error}"}
     end
   end
