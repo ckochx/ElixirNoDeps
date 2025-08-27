@@ -128,16 +128,16 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
     # For GIFs, try img2sixel first as it handles animation better
     result = if String.ends_with?(String.downcase(image_path), ".gif") do
       IO.puts("DEBUG: Trying img2sixel for GIF animation")
-      case System.cmd("img2sixel", ["-w", "#{width}", "-h", "#{height}", image_path], stderr_to_stdout: true, timeout: 10000) do
+      case System.cmd("img2sixel", ["-w", "#{width}", "-h", "#{height}", image_path], stderr_to_stdout: true) do
         {sixel_data, 0} -> 
           IO.puts("DEBUG: img2sixel successful")
           {:ok, sixel_data}
         {error, _} ->
           IO.puts("DEBUG: img2sixel failed: #{error}, falling back to ImageMagick")
-          System.cmd("magick", cmd_args, stderr_to_stdout: true, timeout: 10000)
+          System.cmd("magick", cmd_args, stderr_to_stdout: true)
       end
     else
-      System.cmd("magick", cmd_args, stderr_to_stdout: true, timeout: 5000)
+      System.cmd("magick", cmd_args, stderr_to_stdout: true)
     end
 
     case result do

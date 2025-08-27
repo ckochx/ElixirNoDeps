@@ -295,16 +295,24 @@ defmodule ElixirNoDeps.Presenter.Renderer do
       [_, alt_text, image_path] ->
         # Determine sizing based on alt text
         # Scale pixel dimensions based on terminal width (rough approximation: 8 pixels per character)
-        base_scale = max(max_width * 6, 400)  # Minimum 400px width for small terminals
+        # Add safety checks to prevent crashes
+        safe_max_width = max(max_width || 80, 40)  # Fallback if max_width is nil/invalid
+        base_scale = max(safe_max_width * 6, 400)  # Minimum 400px width for small terminals
         
         opts = case alt_text do
-          "small" -> [width: div(base_scale, 2), height: div(base_scale, 3)]
+          "small" -> [width: max(div(base_scale, 2), 200), height: max(div(base_scale, 3), 150)]
           "large" -> [width: min(base_scale * 2, 800), height: min(base_scale, 600)]
-          "thumbnail" -> [width: div(base_scale, 3), height: div(base_scale, 4)]
-          _ -> [width: base_scale, height: div(base_scale * 3, 4)]
+          "thumbnail" -> [width: max(div(base_scale, 3), 150), height: max(div(base_scale, 4), 100)]
+          _ -> [width: max(base_scale, 400), height: max(div(base_scale * 3, 4), 300)]
         end
         
-        ImageRenderer.render_image(image_path, opts)
+        try do
+          ImageRenderer.render_image(image_path, opts)
+        rescue
+          error ->
+            IO.puts("ERROR: Image rendering failed: #{inspect(error)}")
+            {:error, "Image rendering failed: #{Exception.message(error)}"}
+        end
       
       _ ->
         {:error, "Invalid image format"}
