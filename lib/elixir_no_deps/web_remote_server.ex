@@ -1576,67 +1576,44 @@ defmodule ElixirNoDeps.WebRemoteServer do
   end
 
   defp handle_presenter_login(request) do
-    IO.puts("\n=== PRESENTER LOGIN DEBUG ===")
-    IO.puts("Raw request received:")
-    IO.puts(String.slice(request, 0, 500))
-    IO.puts("========================")
-
     # Extract the POST body from the request
     request_parts = String.split(request, "\r\n\r\n", parts: 2)
 
     body =
       case request_parts do
-        [_headers, post_body] -> 
-          IO.puts("POST body extracted: #{inspect(post_body)}")
-          post_body
-        _ -> 
-          IO.puts("No POST body found")
-          ""
+        [_headers, post_body] -> post_body
+        _ -> ""
       end
 
     # Parse form data (simple URL-encoded parsing)
     password =
       case String.contains?(body, "password=") do
         true ->
-          parsed_password = body
+          body
           |> String.split("&")
           |> Enum.find(&String.starts_with?(&1, "password="))
           |> case do
             "password=" <> pass -> URI.decode_www_form(pass)
             nil -> ""
           end
-          IO.puts("Parsed password: #{inspect(parsed_password)}")
-          parsed_password
 
         false ->
-          IO.puts("No password field found in body")
           ""
       end
 
     # Check password using hash-based authentication
-    password_valid = verify_presenter_password(password)
-    IO.puts("Password validation result: #{password_valid}")
-
-    if password_valid do
-      IO.puts("Password valid - creating session")
+    if verify_presenter_password(password) do
       # Create session token and redirect to presenter control interface
       session_token = create_presenter_session()
-      IO.puts("Session token created: #{String.slice(session_token, 0, 10)}...")
 
       build_http_response(302, "text/html", "", [
         {"Location", "/presenter/control"},
         {"Set-Cookie", "presenter_session=#{session_token}; Path=/; HttpOnly; SameSite=Strict"}
       ])
     else
-      IO.puts("Password invalid - showing error")
       # Show login page with error
       serve_presenter_login_error()
     end
-  rescue
-    error ->
-      IO.puts("ERROR in handle_presenter_login: #{inspect(error)}")
-      IO.puts("Stacktrace: #{Exception.format_stacktrace(__STACKTRACE__)}")
-      serve_error(500, "Login error")
   end
 
   defp serve_presenter_login_error do
@@ -2156,63 +2133,33 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Session-based authentication for presenter routes
   defp handle_authenticated_presenter_route(request) do
-    IO.puts("\n=== PRESENTER CONTROL DEBUG ===")
-    IO.puts("Handling /presenter/control request")
-    
     case extract_session_token(request) do
       {:ok, token} when is_binary(token) ->
-        IO.puts("Session token found: #{String.slice(token, 0, 10)}...")
-        
-        session_valid = verify_presenter_session(token)
-        IO.puts("Session validation result: #{session_valid}")
-        
-        if session_valid do
-          IO.puts("Session valid - serving controller interface")
+        if verify_presenter_session(token) do
           serve_controller_interface()
         else
-          IO.puts("Session invalid/expired - redirecting to login")
           # Invalid or expired session, redirect to login
           build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
         end
 
-      {:error, reason} ->
-        IO.puts("No session token found: #{inspect(reason)}")
+      _ ->
         # No session token, redirect to login
         build_http_response(302, "text/html", "", [{"Location", "/presenter"}])
     end
-  rescue
-    error ->
-      IO.puts("ERROR in handle_authenticated_presenter_route: #{inspect(error)}")
-      IO.puts("Stacktrace: #{Exception.format_stacktrace(__STACKTRACE__)}")
-      serve_error(500, "Presenter control error")
   end
 
   # Extract session token from request cookies
   defp extract_session_token(request) do
-    IO.puts("=== COOKIE DEBUG ===")
-    IO.puts("Extracting session token from request")
-    
     # Simple cookie parsing to find presenter_session
     case String.split(request, "\r\n") do
       lines ->
-        IO.puts("Request lines count: #{length(lines)}")
-        
-        # Print all headers to debug
-        headers = lines |> Enum.take(20) |> Enum.with_index()
-        IO.puts("First 20 headers:")
-        Enum.each(headers, fn {line, index} ->
-          IO.puts("  #{index}: #{inspect(line)}")
-        end)
-        
         # Look for cookie header case-insensitively
         cookie_line = Enum.find(lines, fn line ->
           String.match?(line, ~r/^cookie:/i)
         end)
-        IO.puts("Cookie line found: #{inspect(cookie_line)}")
 
         case cookie_line do
           nil ->
-            IO.puts("No Cookie header found")
             {:error, :not_found}
             
           line ->
@@ -2220,30 +2167,23 @@ defmodule ElixirNoDeps.WebRemoteServer do
             case String.split(line, ":", parts: 2) do
               [_header, cookies_part] ->
                 cookies = String.trim(cookies_part)
-                IO.puts("Cookies string: #{inspect(cookies)}")
                 
                 # Parse cookies to find presenter_session
                 parsed_cookies = cookies
                 |> String.split(";")
                 |> Enum.map(&String.trim/1)
                 
-                IO.puts("Parsed cookies: #{inspect(parsed_cookies)}")
-                
                 presenter_cookie = Enum.find(parsed_cookies, &String.starts_with?(&1, "presenter_session="))
-                IO.puts("Presenter cookie found: #{inspect(presenter_cookie)}")
                 
                 case presenter_cookie do
                   "presenter_session=" <> token -> 
                     cleaned_token = String.trim(token)
-                    IO.puts("Extracted token: #{String.slice(cleaned_token, 0, 10)}...")
                     {:ok, cleaned_token}
                   _ -> 
-                    IO.puts("No presenter_session cookie found")
                     {:error, :not_found}
                 end
               
               _ ->
-                IO.puts("Malformed cookie header")
                 {:error, :not_found}
             end
         end
@@ -2252,33 +2192,20 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
   # Create a new presenter session token
   defp create_presenter_session() do
-    IO.puts("Creating presenter session...")
-    
     # Generate a secure random token
     token = :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
-    IO.puts("Generated token: #{String.slice(token, 0, 10)}...")
 
     # Store session with 24 hour expiration
     expiry = DateTime.utc_now() |> DateTime.add(24, :hour)
-    IO.puts("Session expiry: #{expiry}")
 
     # Store in ETS (reuse the poll storage table)
     try do
       :ets.insert(:poll_votes, {{"session", token}, expiry})
-      IO.puts("Session stored successfully in ETS")
     rescue
-      error ->
-        IO.puts("ERROR storing session in ETS: #{inspect(error)}")
+      _error ->
         # Try to create the table if it doesn't exist
-        try do
-          :ets.new(:poll_votes, [:named_table, :public, :set])
-          :ets.insert(:poll_votes, {{"session", token}, expiry})
-          IO.puts("Created ETS table and stored session")
-        rescue
-          error2 ->
-            IO.puts("ERROR creating ETS table: #{inspect(error2)}")
-            raise error2
-        end
+        :ets.new(:poll_votes, [:named_table, :public, :set])
+        :ets.insert(:poll_votes, {{"session", token}, expiry})
     end
 
     token
