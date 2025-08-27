@@ -1918,27 +1918,27 @@ defmodule ElixirNoDeps.WebRemoteServer do
       end
 
     content_length = byte_size(body)
+    crlf = "\r\n"
 
     # Build custom headers
-    custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r\n" end)
+    custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}#{crlf}" end)
 
     default_headers = [
-      "Content-Type: #{content_type}\r\n",
-      "Content-Length: #{content_length}\r\n",
-      "Connection: close\r\n",
-      "Access-Control-Allow-Origin: *\r\n",
-      "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n",
-      "Access-Control-Allow-Headers: Content-Type\r\n"
+      "Content-Type: #{content_type}#{crlf}",
+      "Content-Length: #{content_length}#{crlf}",
+      "Connection: close#{crlf}",
+      "Access-Control-Allow-Origin: *#{crlf}",
+      "Access-Control-Allow-Methods: GET, POST, OPTIONS#{crlf}",
+      "Access-Control-Allow-Headers: Content-Type#{crlf}"
     ]
 
     all_headers = custom_headers ++ default_headers
 
-    """
-    HTTP/1.1 #{status_code} #{status_text}\r\n
-    #{Enum.join(all_headers, "")}
-    \r\n
-    #{body}
-    """
+    # Build response manually to ensure proper formatting
+    response_line = "HTTP/1.1 #{status_code} #{status_text}"
+    headers_part = Enum.join(all_headers, "")
+
+    response_line <> crlf <> headers_part <> crlf <> body
   end
 
   # Get local IP address for display to user
