@@ -1210,6 +1210,75 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 color: #ecf0f1;
             }
 
+            /* Poll results styles for audience */
+            .poll-results-audience {
+                margin-top: 25px;
+                padding: 20px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 10px;
+                border: 2px solid #27ae60;
+            }
+
+            .poll-results-audience h4 {
+                color: #27ae60;
+                text-align: center;
+                margin-bottom: 15px;
+                font-size: 1.2rem;
+            }
+
+            .poll-results-chart-audience {
+                margin-bottom: 15px;
+            }
+
+            .poll-option-result-audience {
+                display: flex;
+                align-items: center;
+                margin-bottom: 12px;
+                padding: 12px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .poll-option-text-audience {
+                flex: 1;
+                margin-right: 15px;
+                font-weight: 500;
+                color: #ecf0f1;
+            }
+
+            .poll-option-count-audience {
+                margin-right: 15px;
+                color: #3498db;
+                font-weight: bold;
+                min-width: 40px;
+                text-align: right;
+            }
+
+            .poll-option-percentage-audience {
+                margin-right: 15px;
+                color: #27ae60;
+                font-weight: bold;
+                min-width: 45px;
+                text-align: right;
+            }
+
+            .poll-option-bar-audience {
+                height: 8px;
+                background: linear-gradient(135deg, #27ae60, #2ecc71);
+                border-radius: 4px;
+                min-width: 2px;
+                transition: width 0.5s ease;
+            }
+
+            .poll-summary-audience {
+                text-align: center;
+                font-weight: bold;
+                color: #3498db;
+                font-size: 1rem;
+                padding-top: 10px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
             .slide-text {
                 background: rgba(0, 0, 0, 0.3);
                 padding: 25px;
@@ -1285,6 +1354,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
         <script>
             let currentSlide = 1;
             let isConnected = false;
+            let votedSlides = new Set(); // Track which slides user has voted on
 
             async function updateAudienceView() {
                 try {
@@ -1311,8 +1381,14 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     slideContentEl.classList.remove('loading');
 
                     if (data.poll_data && data.poll_data.question) {
-                        // Render poll interface
-                        renderPollInterface(data.poll_data, currentSlide.toString());
+                        // Check if user has already voted on this slide
+                        if (votedSlides.has(currentSlide.toString())) {
+                            // Show results if user has voted
+                            renderPollResults(data.poll_data, currentSlide.toString());
+                        } else {
+                            // Show voting interface if user hasn't voted
+                            renderPollInterface(data.poll_data, currentSlide.toString());
+                        }
                     } else {
                         // Render regular slide content
                         slideContentEl.innerHTML = '<div class="slide-text">' + (data.content || 'No content available').replace(/\\n/g, '<br>') + '</div>';
@@ -1373,20 +1449,82 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     });
 
                     if (response.ok) {
-                        // Update status and disable buttons
-                        document.getElementById('poll-status').innerHTML = '✅ Thank you for voting!';
-                        document.querySelectorAll('.poll-option').forEach(btn => {
-                            btn.disabled = true;
-                            if (btn.onclick.toString().includes(optionIndex.toString())) {
-                                btn.classList.add('voted');
-                            }
-                        });
+                        // Mark this slide as voted on
+                        votedSlides.add(slideId);
+
+                        // Get current poll data and show results
+                        const slideResponse = await fetch('/api/current');
+                        const slideData = await slideResponse.json();
+
+                        if (slideData.poll_data && slideData.poll_data.question) {
+                            renderPollResults(slideData.poll_data, slideId);
+                        }
                     } else {
                         document.getElementById('poll-status').innerHTML = '❌ Failed to submit vote. Please try again.';
                     }
                 } catch (error) {
                     console.error('Vote submission failed:', error);
                     document.getElementById('poll-status').innerHTML = '❌ Connection error. Please try again.';
+                }
+            }
+
+            async function renderPollResults(pollData, slideId) {
+                try {
+                    // Get poll results
+                    const resultsResponse = await fetch(`/api/poll/results/${slideId}`);
+                    const results = await resultsResponse.json();
+
+                    const totalVotes = results.total_votes || 0;
+                    const slideContentEl = document.getElementById('slide-content');
+
+                    // Create complete poll results HTML
+                    let resultsHtml = '<div class="poll-container">';
+                    resultsHtml += '<div class="poll-question">';
+                    resultsHtml += '<h3>🗳️ ' + pollData.question + '</h3>';
+                    resultsHtml += '</div>';
+
+                    resultsHtml += '<div class="poll-status">✅ Thank you for voting!</div>';
+
+                    resultsHtml += '<div class="poll-results-audience">';
+                    resultsHtml += '<h4>📊 Poll Results</h4>';
+                    resultsHtml += '<div class="poll-results-chart-audience">';
+
+                    pollData.options.forEach((option, index) => {
+                        const votes = results.results[index] || 0;
+                        const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+                        const barWidth = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
+                        resultsHtml +=
+                            '<div class="poll-option-result-audience">' +
+                                '<div class="poll-option-text-audience">' + option + '</div>' +
+                                '<div class="poll-option-count-audience">' + votes + '</div>' +
+                                '<div class="poll-option-percentage-audience">' + percentage + '%</div>' +
+                                '<div class="poll-option-bar-audience" style="width: ' + barWidth + '%;"></div>' +
+                            '</div>';
+                    });
+
+                    resultsHtml += '</div>';
+                    resultsHtml += '<div class="poll-summary-audience">Total votes: ' + totalVotes + '</div>';
+                    resultsHtml += '</div>';
+                    resultsHtml += '</div>';
+
+                    // Replace the slide content with poll results
+                    slideContentEl.innerHTML = resultsHtml;
+
+                } catch (error) {
+                    console.error('Failed to render poll results:', error);
+                    // Show error message
+                    const slideContentEl = document.getElementById('slide-content');
+                    slideContentEl.innerHTML =
+                        '<div class="poll-container">' +
+                            '<div class="poll-question">' +
+                                '<h3>🗳️ ' + pollData.question + '</h3>' +
+                            '</div>' +
+                            '<div class="poll-status">✅ Thank you for voting!</div>' +
+                            '<div style="text-align: center; color: #e74c3c; margin-top: 20px;">' +
+                                '⚠️ Unable to load results at this time' +
+                            '</div>' +
+                        '</div>';
                 }
             }
 
