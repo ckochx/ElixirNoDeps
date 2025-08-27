@@ -127,8 +127,8 @@ defmodule ElixirNoDeps.Presenter.ImageRenderer do
 
     # For GIFs, check if we're on Debian and use first frame only for performance
     result = if String.ends_with?(String.downcase(image_path), ".gif") do
-      is_debian = case System.cmd("lsb_release", ["-i"], stderr_to_stdout: true) do
-        {output, 0} -> String.contains?(String.downcase(output), "debian")
+      is_debian = case File.read("/etc/os-release") do
+        {:ok, content} -> String.contains?(String.downcase(content), "debian")
         _ -> false
       end
       

@@ -299,8 +299,9 @@ defmodule ElixirNoDeps.Presenter.Renderer do
         IO.puts("DEBUG: max_width received: #{inspect(max_width)}")
         safe_max_width = max(max_width || 80, 40)  # Fallback if max_width is nil/invalid
         # For Debian, ensure larger minimum size since terminal detection might be off
-        min_scale = case System.cmd("lsb_release", ["-i"], stderr_to_stdout: true) do
-          {output, 0} when output =~ "Debian" -> 600  # Larger minimum for Debian
+        min_scale = case File.read("/etc/os-release") do
+          {:ok, content} -> 
+            if String.contains?(content, "debian") or String.contains?(content, "Debian"), do: 600, else: 400
           _ -> 400  # Standard minimum
         end
         base_scale = max(safe_max_width * 6, min_scale)
