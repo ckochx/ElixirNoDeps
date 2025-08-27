@@ -1920,7 +1920,7 @@ defmodule ElixirNoDeps.WebRemoteServer do
     content_length = byte_size(body)
 
     # Build custom headers
-    custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r" end)
+    custom_headers = Enum.map(headers, fn {key, value} -> "#{key}: #{value}\r\n" end)
 
     default_headers = [
       "Content-Type: #{content_type}\r\n",
