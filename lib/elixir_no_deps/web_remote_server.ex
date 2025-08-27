@@ -2196,35 +2196,56 @@ defmodule ElixirNoDeps.WebRemoteServer do
     case String.split(request, "\r\n") do
       lines ->
         IO.puts("Request lines count: #{length(lines)}")
-        cookie_line = Enum.find(lines, &String.starts_with?(&1, "Cookie:"))
+        
+        # Print all headers to debug
+        headers = lines |> Enum.take(20) |> Enum.with_index()
+        IO.puts("First 20 headers:")
+        Enum.each(headers, fn {line, index} ->
+          IO.puts("  #{index}: #{inspect(line)}")
+        end)
+        
+        # Look for cookie header case-insensitively
+        cookie_line = Enum.find(lines, fn line ->
+          String.match?(line, ~r/^cookie:/i)
+        end)
         IO.puts("Cookie line found: #{inspect(cookie_line)}")
 
         case cookie_line do
-          "Cookie: " <> cookies ->
-            IO.puts("Cookies string: #{inspect(cookies)}")
-            # Parse cookies to find presenter_session
-            parsed_cookies = cookies
-            |> String.split(";")
-            |> Enum.map(&String.trim/1)
-            
-            IO.puts("Parsed cookies: #{inspect(parsed_cookies)}")
-            
-            presenter_cookie = Enum.find(parsed_cookies, &String.starts_with?(&1, "presenter_session="))
-            IO.puts("Presenter cookie found: #{inspect(presenter_cookie)}")
-            
-            case presenter_cookie do
-              "presenter_session=" <> token -> 
-                cleaned_token = String.trim(token)
-                IO.puts("Extracted token: #{String.slice(cleaned_token, 0, 10)}...")
-                {:ok, cleaned_token}
-              _ -> 
-                IO.puts("No presenter_session cookie found")
-                {:error, :not_found}
-            end
-
-          _ ->
+          nil ->
             IO.puts("No Cookie header found")
             {:error, :not_found}
+            
+          line ->
+            # Extract cookies part after the colon
+            case String.split(line, ":", parts: 2) do
+              [_header, cookies_part] ->
+                cookies = String.trim(cookies_part)
+                IO.puts("Cookies string: #{inspect(cookies)}")
+                
+                # Parse cookies to find presenter_session
+                parsed_cookies = cookies
+                |> String.split(";")
+                |> Enum.map(&String.trim/1)
+                
+                IO.puts("Parsed cookies: #{inspect(parsed_cookies)}")
+                
+                presenter_cookie = Enum.find(parsed_cookies, &String.starts_with?(&1, "presenter_session="))
+                IO.puts("Presenter cookie found: #{inspect(presenter_cookie)}")
+                
+                case presenter_cookie do
+                  "presenter_session=" <> token -> 
+                    cleaned_token = String.trim(token)
+                    IO.puts("Extracted token: #{String.slice(cleaned_token, 0, 10)}...")
+                    {:ok, cleaned_token}
+                  _ -> 
+                    IO.puts("No presenter_session cookie found")
+                    {:error, :not_found}
+                end
+              
+              _ ->
+                IO.puts("Malformed cookie header")
+                {:error, :not_found}
+            end
         end
     end
   end
