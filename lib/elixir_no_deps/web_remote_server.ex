@@ -97,6 +97,9 @@ defmodule ElixirNoDeps.WebRemoteServer do
       {"GET", "/api/poll/results/" <> slide_id} ->
         serve_poll_results(slide_id)
 
+      {"POST", "/api/reset-timer"} ->
+        handle_timer_reset()
+
       _ ->
         serve_error(404, "Not Found")
     end
@@ -226,6 +229,15 @@ defmodule ElixirNoDeps.WebRemoteServer do
 
             .btn-primary:hover {
                 background: rgba(76, 175, 80, 0.5);
+            }
+
+            .btn-reset {
+                background: rgba(244, 67, 54, 0.3);
+                border-color: #f44336;
+            }
+
+            .btn-reset:hover {
+                background: rgba(244, 67, 54, 0.5);
             }
 
             .goto-section {
@@ -468,6 +480,10 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         🎯 Go To
                     </button>
                 </div>
+
+                <button class="btn btn-reset" onclick="resetTimer()" id="reset-btn" style="grid-column: 1 / -1;">
+                    🔄 Reset Timer
+                </button>
             </div>
         </div>
 
@@ -627,6 +643,26 @@ defmodule ElixirNoDeps.WebRemoteServer do
                     setTimeout(updateSlideInfo, 100);
                 } catch (error) {
                     console.error('Goto failed:', error);
+                } finally {
+                    document.body.classList.remove('loading');
+                }
+            }
+
+            async function resetTimer() {
+                try {
+                    document.body.classList.add('loading');
+                    await fetch('/api/reset-timer', { method: 'POST' });
+
+                    // Reset client-side timer immediately
+                    slideStartTime = Date.now();
+                    document.body.classList.remove('slide-warning');
+
+                    // Update display to show reset
+                    setTimeout(updateSlideInfo, 100);
+                    console.log('Timer reset successfully');
+                } catch (error) {
+                    console.error('Timer reset failed:', error);
+                    alert('Failed to reset timer. Please try again.');
                 } finally {
                     document.body.classList.remove('loading');
                 }
@@ -2006,6 +2042,17 @@ defmodule ElixirNoDeps.WebRemoteServer do
       "results": #{encode_value(results)},
       "total_votes": #{total_votes}
     }
+    """
+
+    build_http_response(200, "application/json", response)
+  end
+
+  defp handle_timer_reset do
+    # Reset timer by calling a new function in Navigator
+    ElixirNoDeps.Presenter.Navigator.reset_timer()
+
+    response = """
+    {"success": true, "message": "Timer reset successfully"}
     """
 
     build_http_response(200, "application/json", response)

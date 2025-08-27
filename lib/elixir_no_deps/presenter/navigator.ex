@@ -65,6 +65,14 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   end
 
   @doc """
+  Resets the presentation timer to current time.
+  """
+  @spec reset_timer() :: :ok
+  def reset_timer do
+    GenServer.call(__MODULE__, :reset_timer)
+  end
+
+  @doc """
   Simulates a key press for remote control.
   """
   @spec simulate_key_press(String.t()) :: :ok | :quit
@@ -127,6 +135,22 @@ defmodule ElixirNoDeps.Presenter.Navigator do
   @impl true
   def handle_call(:get_presentation, _from, presentation) do
     {:reply, presentation, presentation}
+  end
+
+  @impl true
+  def handle_call(:reset_timer, _from, presentation) do
+    # Reset both presentation start time and current slide start time
+    now = DateTime.utc_now()
+
+    updated_metadata =
+      Map.merge(presentation.metadata || %{}, %{
+        presentation_start_time: now,
+        slide_start_time: now
+      })
+
+    updated_presentation = %{presentation | metadata: updated_metadata}
+
+    {:reply, :ok, updated_presentation}
   end
 
   @impl true
