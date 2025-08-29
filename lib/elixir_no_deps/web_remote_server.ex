@@ -1282,6 +1282,13 @@ defmodule ElixirNoDeps.WebRemoteServer do
                 color: #ecf0f1;
             }
 
+            .poll-stats-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+
             .poll-option-count-audience {
                 margin-right: 15px;
                 color: #3498db;
@@ -1325,17 +1332,86 @@ defmodule ElixirNoDeps.WebRemoteServer do
             }
 
             @media (max-width: 768px) {
+                body {
+                    padding: 10px;
+                }
+
+                .audience-container {
+                    max-width: 100%;
+                }
+
+                .audience-header h1 {
+                    font-size: 1.5rem;
+                }
+
                 .slide-title {
                     font-size: 1.5rem;
                 }
 
                 .slide-content {
                     font-size: 1rem;
-                    padding: 20px;
+                    padding: 15px;
                 }
 
                 .slide-display {
-                    padding: 20px;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                }
+
+                /* Mobile poll results adjustments */
+                .poll-results-audience {
+                    margin-top: 20px;
+                    padding: 15px;
+                }
+
+                .poll-option-result-audience {
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    flex-direction: column;
+                    align-items: stretch;
+                    background: rgba(255, 255, 255, 0.08);
+                }
+
+                .poll-option-text-audience {
+                    margin-bottom: 8px;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                    line-height: 1.4;
+                    font-size: 1rem;
+                    text-align: left;
+                    width: 100%;
+                }
+
+                .poll-stats-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px;
+                }
+
+                .poll-option-count-audience {
+                    font-size: 1rem;
+                    margin: 0;
+                }
+
+                .poll-option-percentage-audience {
+                    font-size: 1rem;
+                    margin: 0;
+                }
+
+                .poll-option-bar-audience {
+                    width: 100%;
+                    height: 8px;
+                    margin-top: 0;
+                }
+
+                .poll-summary-audience {
+                    font-size: 1rem;
+                    margin-top: 15px;
+                }
+
+                .poll-results-audience h4 {
+                    font-size: 1.1rem;
                 }
             }
         </style>
@@ -1533,8 +1609,10 @@ defmodule ElixirNoDeps.WebRemoteServer do
                         resultsHtml +=
                             '<div class="poll-option-result-audience">' +
                                 '<div class="poll-option-text-audience">' + option + '</div>' +
-                                '<div class="poll-option-count-audience">' + votes + '</div>' +
-                                '<div class="poll-option-percentage-audience">' + percentage + '%</div>' +
+                                '<div class="poll-stats-row">' +
+                                    '<div class="poll-option-count-audience">' + votes + '</div>' +
+                                    '<div class="poll-option-percentage-audience">' + percentage + '%</div>' +
+                                '</div>' +
                                 '<div class="poll-option-bar-audience" style="width: ' + barWidth + '%;"></div>' +
                             '</div>';
                     });
@@ -2154,35 +2232,39 @@ defmodule ElixirNoDeps.WebRemoteServer do
     case String.split(request, "\r\n") do
       lines ->
         # Look for cookie header case-insensitively
-        cookie_line = Enum.find(lines, fn line ->
-          String.match?(line, ~r/^cookie:/i)
-        end)
+        cookie_line =
+          Enum.find(lines, fn line ->
+            String.match?(line, ~r/^cookie:/i)
+          end)
 
         case cookie_line do
           nil ->
             {:error, :not_found}
-            
+
           line ->
             # Extract cookies part after the colon
             case String.split(line, ":", parts: 2) do
               [_header, cookies_part] ->
                 cookies = String.trim(cookies_part)
-                
+
                 # Parse cookies to find presenter_session
-                parsed_cookies = cookies
-                |> String.split(";")
-                |> Enum.map(&String.trim/1)
-                
-                presenter_cookie = Enum.find(parsed_cookies, &String.starts_with?(&1, "presenter_session="))
-                
+                parsed_cookies =
+                  cookies
+                  |> String.split(";")
+                  |> Enum.map(&String.trim/1)
+
+                presenter_cookie =
+                  Enum.find(parsed_cookies, &String.starts_with?(&1, "presenter_session="))
+
                 case presenter_cookie do
-                  "presenter_session=" <> token -> 
+                  "presenter_session=" <> token ->
                     cleaned_token = String.trim(token)
                     {:ok, cleaned_token}
-                  _ -> 
+
+                  _ ->
                     {:error, :not_found}
                 end
-              
+
               _ ->
                 {:error, :not_found}
             end
