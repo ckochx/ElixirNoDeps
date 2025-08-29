@@ -237,65 +237,21 @@ defmodule ElixirNoDeps.RemotePresenter do
     end
   end
 
-  defp create_connection_slide_content(web_port) do
-    # Get local IP for display
-    local_ip = get_local_ip()
-
+  defp create_connection_slide_content(_web_port) do
     """
-    # 📱 Remote Control Ready!
+    # 📱 Scan to Connect!
 
-    ## Connect Devices
-    **URL:** `http://#{local_ip}:#{web_port}`
+    ![QR Code](priv/assets/qr_code.png)
 
-    ## For Presenters (You)
-    1. **Connect phone** to the same network as this laptop
-    2. **Go to:** `http://#{local_ip}:#{web_port}`
-    3. **Choose "Presenter"** and enter your password
-    4. **Control slides** with speaker notes and timing
-
-    ## For Audience (50+ people supported!)
-    1. **Share the URL** with your audience
-    2. **They choose "Audience"** (no password needed)
-    3. **They follow along** with live slides on their devices
-    4. **Updates automatically** as you present
+    ## For Audience
+    **Scan the QR code above to follow along with the presentation**
 
     ## Ready to Start?
-    - **Press Enter** to begin the presentation
-    - **Multiple devices** can connect simultaneously
-    - **Terminal stays clean** for projection
+    **Press Enter** to begin the presentation
 
-    <!-- Speaker notes: Test the connection now! Go to the URL on your phone, choose Presenter, and enter your password. The audience can also follow along by choosing "Audience" - perfect for conferences! -->
+    <!-- Speaker notes: Test the connection now! Go to the URL on your phone, choose Presenter, and enter your password. The audience can scan the QR code to follow along! -->
 
     ---
     """
-  end
-
-  defp get_local_ip do
-    case :inet.getif() do
-      {:ok, interfaces} ->
-        # Find the first non-loopback interface
-        interfaces
-        |> Enum.find(fn {ip, _broadcast, _netmask} ->
-          case ip do
-            # Skip loopback
-            {127, 0, 0, 1} -> false
-            # Skip link-local
-            {169, 254, _, _} -> false
-            # Private networks
-            {ip1, _, _, _} when ip1 in [10, 172, 192] -> true
-            _ -> false
-          end
-        end)
-        |> case do
-          {ip, _broadcast, _netmask} ->
-            ip |> Tuple.to_list() |> Enum.join(".")
-
-          nil ->
-            "localhost"
-        end
-
-      {:error, _} ->
-        "localhost"
-    end
   end
 end
